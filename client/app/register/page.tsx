@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { Hero } from "@/components/hero";
+import { RegisterHero } from "@/components/register-hero";
 import { RegisterCard } from "@/components/register-card";
 
 export default function RegisterPage() {
@@ -9,7 +9,7 @@ export default function RegisterPage() {
       <Navbar />
 
       <section className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-24">
-        <Hero />
+        <RegisterHero />
         <RegisterCard />
       </section>
 
