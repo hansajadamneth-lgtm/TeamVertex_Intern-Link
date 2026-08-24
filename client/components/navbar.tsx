@@ -42,10 +42,10 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Link href="#" className={NAV_LINK_CLASS}>
+          <Link href="/login" className={NAV_LINK_CLASS}>
             Sign In
           </Link>
-          <Link href="#" className={NAV_LINK_CLASS}>
+          <Link href="/register" className={NAV_LINK_CLASS}>
             Register
           </Link>
         </nav>
@@ -76,14 +76,14 @@ export function Navbar() {
             </Link>
           ))}
           <Link
-            href="#"
+            href="/login"
             onClick={() => setOpen(false)}
             className="rounded-md px-2 py-3 text-sm text-gray-200 transition-colors hover:bg-white/5 hover:text-white"
           >
             Sign In
           </Link>
           <Link
-            href="#"
+            href="/register"
             onClick={() => setOpen(false)}
             className="rounded-md px-2 py-3 text-sm text-gray-200 transition-colors hover:bg-white/5 hover:text-white"
           >
