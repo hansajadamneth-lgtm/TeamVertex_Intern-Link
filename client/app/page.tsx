@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { LandingNavbar } from "@/components/landing-navbar";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -28,9 +29,11 @@ export default function LandingPage() {
           Welcome to InternLink
         </p>
 
-        <Button size="lg" className="mt-2 w-full max-w-md py-6 text-base">
-          Create new Account
-        </Button>
+        <Link href="/register" className="mt-2 w-full max-w-md">
+          <Button size="lg" className="w-full py-6 text-base">
+            Create new Account
+          </Button>
+        </Link>
       </section>
 
       <Footer />

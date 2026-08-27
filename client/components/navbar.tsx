@@ -7,8 +7,8 @@ import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "About us", href: "#" },
-  { label: "Contact us", href: "#" },
+  { label: "About us", href: "/about" },
+  { label: "Contact us", href: "/contact" },
 ];
 
 const NAV_LINK_CLASS = "text-sm text-gray-200 transition-colors hover:text-white";

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const FOOTER_LINKS = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Contact us", href: "#" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms of Service", href: "/terms-of-service" },
+  { label: "Contact us", href: "/contact" },
 ];
 
 export function Footer() {
