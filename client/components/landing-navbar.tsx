@@ -7,10 +7,10 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
-  { label: "Find jobs", href: "#" },
-  { label: "cv builder", href: "#" },
-  { label: "Recommendation", href: "#" },
-  { label: "Saved", href: "#" },
+  { label: "Find jobs", href: "/home" },
+  { label: "cv builder", href: "/home" },
+  { label: "Recommendation", href: "/home" },
+  { label: "Saved", href: "/home" },
 ];
 
 export function LandingNavbar() {
@@ -47,7 +47,9 @@ export function LandingNavbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:block">
-          <Button className="rounded-md">Sign In</Button>
+          <Link href="/login">
+            <Button className="rounded-md">Sign In</Button>
+          </Link>
         </div>
 
         {/* Mobile menu toggle */}
@@ -75,7 +77,9 @@ export function LandingNavbar() {
               {link.label}
             </Link>
           ))}
-          <Button className="mt-2 w-full rounded-md">Sign In</Button>
+          <Link href="/login" className="mt-2 block w-full">
+            <Button className="w-full rounded-md">Sign In</Button>
+          </Link>
         </nav>
       )}
     </header>
