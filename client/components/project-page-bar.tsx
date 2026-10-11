@@ -40,11 +40,11 @@ export function ProjectPageBar() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-6 top-6 z-50 rounded-md bg-[#0b1b41] p-2.5 text-white shadow-md transition-colors hover:bg-[#162b5b]"
+        className="fixed right-4 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-md bg-[#0b1b41] text-white shadow-md transition-colors hover:bg-[#162b5b]"
         aria-label="Open project navigation"
         aria-expanded={open}
       >
-        <Menu className="h-7 w-7" />
+        <Menu className="h-6 w-6" />
       </button>
 
       {open && (
