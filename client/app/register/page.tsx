@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { RegisterHero } from "@/components/register-hero";
 import { RegisterCard } from "@/components/register-card";
 
 export default function RegisterPage() {
@@ -7,13 +8,13 @@ export default function RegisterPage() {
     <main className="flex min-h-screen flex-col bg-white">
       <Navbar />
 
-      <section className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center px-6 py-16 lg:px-10">
-        <div className="w-full max-w-xl">
-          <RegisterCard />
-        </div>
+      <section className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-24">
+        <RegisterHero />
+        <RegisterCard />
       </section>
 
       <Footer />
     </main>
   );
 }
+

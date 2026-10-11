@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function JobSearchHero() {
   const [query, setQuery] = useState("");
+  const router = useRouter();
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    // Wire up to your real search logic here.
+    const search = query.trim();
+    router.push(search ? `/job-details?query=${encodeURIComponent(search)}` : "/job-details");
   }
 
   return (
