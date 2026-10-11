@@ -7,9 +7,9 @@ import { Check, Copy, FileText, Sparkles } from "lucide-react";
 
 const navItems = [
   { label: "AI Cover Letter", href: "/cover-letter", active: true },
-  { label: "Recommendations", href: "/home#recommendations" },
+  { label: "Recommendations", href: "/recommendations" },
   { label: "Applications", href: "/applications", count: 4 },
-  { label: "Notifications", href: "/applications#notifications" },
+  { label: "Notifications", href: "/notifications" },
 ];
 
 const defaultForm = {

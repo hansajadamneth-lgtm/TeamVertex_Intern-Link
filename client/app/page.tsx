@@ -228,7 +228,7 @@ export default function ResumeManagementPage() {
               <Link href="/" className="transition-opacity hover:opacity-70">
                 CV builder
               </Link>
-              <Link href="/home#recommendations" className="transition-opacity hover:opacity-70">
+              <Link href="/recommendations" className="transition-opacity hover:opacity-70">
                 Recommendation
               </Link>
               <Link href="/saved-jobs" className="transition-opacity hover:opacity-70">

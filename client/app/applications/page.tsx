@@ -53,9 +53,9 @@ const applications: Application[] = [
 
 const navItems = [
   { label: "AI Cover Letter", href: "/cover-letter" },
-  { label: "Recommendations", href: "/home#recommendations" },
+  { label: "Recommendations", href: "/recommendations" },
   { label: "Applications", href: "/applications", active: true, count: 4 },
-  { label: "Notifications", href: "/applications#notifications" },
+  { label: "Notifications", href: "/notifications" },
 ];
 
 export default function ApplicationsPage() {

@@ -56,7 +56,7 @@ function Header({ active }: { active: string }) {
     ["Home", "/home"],
     ["Find jobs", "/job-details"],
     ["cv builder", "/"],
-    ["Recommendation", "/home#recommendations"],
+    ["Recommendation", "/recommendations"],
     ["Saved", "/saved-jobs"],
   ];
   return (

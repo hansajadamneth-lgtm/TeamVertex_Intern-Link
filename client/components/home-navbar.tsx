@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { label: "Home", href: "/home" },
   { label: "Find jobs", href: "/job-details" },
   { label: "cv builder", href: "/" },
-  { label: "Recommendation", href: "/home#recommendations" },
+  { label: "Recommendation", href: "/recommendations" },
   { label: "Saved", href: "/saved-jobs" },
 ];
 

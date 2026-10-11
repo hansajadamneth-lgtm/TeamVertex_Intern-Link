@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const stats = [
   {
     title: "Total Users",
@@ -177,9 +179,9 @@ export default function AdminDashboardPage() {
                 Recent Job Posts
               </h2>
 
-              <button className="text-xs font-semibold text-orange-500">
+              <Link href="/admin/internship-posts" className="text-xs font-semibold text-orange-500">
                 View All
-              </button>
+              </Link>
             </div>
 
             <div className="overflow-x-auto">
@@ -266,9 +268,9 @@ export default function AdminDashboardPage() {
               Recent Users
             </h2>
 
-            <button className="text-xs font-semibold text-orange-500">
+            <Link href="/admin/students" className="text-xs font-semibold text-orange-500">
               View All
-            </button>
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
