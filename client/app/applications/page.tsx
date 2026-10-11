@@ -53,9 +53,9 @@ const applications: Application[] = [
 
 const navItems = [
   { label: "AI Cover Letter", href: "/cover-letter" },
-  { label: "Recommendations", href: "#recommendations" },
+  { label: "Recommendations", href: "/recommendations" },
   { label: "Applications", href: "/applications", active: true, count: 4 },
-  { label: "Notifications", href: "#notifications" },
+  { label: "Notifications", href: "/notifications" },
 ];
 
 export default function ApplicationsPage() {
@@ -84,7 +84,7 @@ export default function ApplicationsPage() {
               </Link>
             ))}
           </div>
-          <button type="button" className="hidden text-[10px] text-slate-300 hover:text-white sm:block">Sign out</button>
+          <Link href="/login" className="hidden text-[10px] text-slate-300 hover:text-white sm:block">Sign out</Link>
         </nav>
       </header>
 

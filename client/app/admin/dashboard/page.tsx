@@ -1,23 +1,29 @@
+import Link from "next/link";
+
 const stats = [
   {
     title: "Total Users",
     value: "2,450",
     change: "+12.5%",
+    href: "/admin/students",
   },
   {
     title: "Active Jobs",
     value: "135",
     change: "+8.2%",
+    href: "/admin/internship-posts",
   },
   {
     title: "Companies",
     value: "82",
     change: "+5.4%",
+    href: "/admin/companies",
   },
   {
     title: "Applications",
     value: "4,650",
     change: "+15.8%",
+    href: "/applications",
   },
 ];
 
@@ -147,8 +153,9 @@ export default function AdminDashboardPage() {
         {/* Statistics */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <div
+            <Link
               key={stat.title}
+              href={stat.href}
               className="rounded-xl bg-white p-5 shadow-sm"
             >
               <p className="text-sm text-gray-500">
@@ -164,22 +171,22 @@ export default function AdminDashboardPage() {
                   {stat.change}
                 </span>
               </div>
-            </div>
+              </Link>
           ))}
         </div>
 
         {/* Main dashboard sections */}
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           {/* Recent Jobs */}
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div id="reports" className="rounded-xl bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-semibold text-gray-800">
                 Recent Job Posts
               </h2>
 
-              <button className="text-xs font-semibold text-orange-500">
+              <Link href="/admin/internship-posts" className="text-xs font-semibold text-orange-500">
                 View All
-              </button>
+              </Link>
             </div>
 
             <div className="overflow-x-auto">
@@ -260,15 +267,15 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Users */}
-        <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
+        <div id="users" className="mt-6 rounded-xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">
               Recent Users
             </h2>
 
-            <button className="text-xs font-semibold text-orange-500">
+            <Link href="/admin/students" className="text-xs font-semibold text-orange-500">
               View All
-            </button>
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
