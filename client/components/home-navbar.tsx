@@ -10,8 +10,12 @@ const NAV_LINKS = [
   { label: "Home", href: "/home" },
   { label: "Find jobs", href: "/job-details" },
   { label: "cv builder", href: "/" },
-  { label: "Recommendation", href: "/recommendations" },
+  { label: "Recommendations", href: "/recommendations" },
+  { label: "Applications", href: "/applications" },
+  { label: "Notifications", href: "/notifications" },
   { label: "Saved", href: "/saved-jobs" },
+  { label: "Profile", href: "/profile" },
+  { label: "Settings", href: "/settings" },
 ];
 
 export function HomeNavbar() {
@@ -34,7 +38,7 @@ export function HomeNavbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-2 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.label}

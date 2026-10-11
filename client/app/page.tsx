@@ -231,6 +231,12 @@ export default function ResumeManagementPage() {
               <Link href="/recommendations" className="transition-opacity hover:opacity-70">
                 Recommendation
               </Link>
+              <Link href="/applications" className="transition-opacity hover:opacity-70">
+                Applications
+              </Link>
+              <Link href="/notifications" className="transition-opacity hover:opacity-70">
+                Notifications
+              </Link>
               <Link href="/saved-jobs" className="transition-opacity hover:opacity-70">
                 Saved
               </Link>
