@@ -24,7 +24,7 @@ export default function RootLayout({
       lang="en"
       className={`${lora.variable} ${lora.className} h-full antialiased`}
     >
-      <body className={`${lora.className} min-h-full flex flex-col font-serif`}>
+      <body className={`${lora.className} min-h-full flex flex-col pl-16 font-serif`}>
         <ProjectPageBar />
         {children}
       </body>

@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
 
 const PAGE_LINKS = [
   ["Home", "/home"],
@@ -29,25 +33,46 @@ const PAGE_LINKS = [
 ];
 
 export function ProjectPageBar() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <nav
-      aria-label="All project pages"
-      className="border-b border-[#e5e7eb] bg-white shadow-sm"
-    >
-      <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-5 py-2 scrollbar-none lg:px-8">
-        <span className="sticky left-0 shrink-0 bg-white pr-2 text-[10px] font-semibold uppercase tracking-wide text-[#98a2b3]">
-          Pages
-        </span>
-        {PAGE_LINKS.map(([label, href]) => (
-          <Link
-            key={href}
-            href={href}
-            className="shrink-0 rounded-full border border-[#e5e7eb] px-3 py-1.5 text-[11px] font-medium text-[#475467] transition-colors hover:border-il-orange hover:bg-[#fff7f1] hover:text-il-orange"
+    <>
+      <aside
+        aria-label="Project navigation"
+        className={`fixed left-0 top-0 z-50 h-screen bg-[#0b1b41] text-white shadow-xl transition-all duration-200 ${
+          open ? "w-64" : "w-16"
+        }`}
+      >
+        <div className="flex h-16 items-center justify-center border-b border-white/10">
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="rounded-md p-2 text-white transition-colors hover:bg-white/10"
+            aria-label={open ? "Close project navigation" : "Open project navigation"}
+            aria-expanded={open}
           >
-            {label}
-          </Link>
-        ))}
-      </div>
-    </nav>
+            {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+          </button>
+        </div>
+
+        {open && (
+          <nav className="flex h-[calc(100vh-4rem)] flex-col gap-1 overflow-y-auto px-3 py-4">
+            <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-white/50">
+              InternLink pages
+            </p>
+            {PAGE_LINKS.map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className="rounded-md px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+        )}
+      </aside>
+    </>
   );
 }
