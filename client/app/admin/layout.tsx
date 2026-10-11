@@ -75,10 +75,10 @@ export default function AdminLayout({
 
         {/* Logout */}
         <div className="border-t border-white/10 p-3">
-          <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10">
+          <Link href="/login" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10">
             <span>⇥</span>
             Logout
-          </button>
+          </Link>
         </div>
       </aside>
 

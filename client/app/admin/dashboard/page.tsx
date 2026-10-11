@@ -5,21 +5,25 @@ const stats = [
     title: "Total Users",
     value: "2,450",
     change: "+12.5%",
+    href: "/admin/students",
   },
   {
     title: "Active Jobs",
     value: "135",
     change: "+8.2%",
+    href: "/admin/internship-posts",
   },
   {
     title: "Companies",
     value: "82",
     change: "+5.4%",
+    href: "/admin/companies",
   },
   {
     title: "Applications",
     value: "4,650",
     change: "+15.8%",
+    href: "/applications",
   },
 ];
 
@@ -149,8 +153,9 @@ export default function AdminDashboardPage() {
         {/* Statistics */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <div
+            <Link
               key={stat.title}
+              href={stat.href}
               className="rounded-xl bg-white p-5 shadow-sm"
             >
               <p className="text-sm text-gray-500">
@@ -166,7 +171,7 @@ export default function AdminDashboardPage() {
                   {stat.change}
                 </span>
               </div>
-            </div>
+              </Link>
           ))}
         </div>
 
