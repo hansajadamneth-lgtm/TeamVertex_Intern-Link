@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lora } from "next/font/google";
 import "./globals.css";
+import { ProjectPageBar } from "@/components/project-page-bar";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -24,6 +25,7 @@ export default function RootLayout({
       className={`${lora.variable} ${lora.className} h-full antialiased`}
     >
       <body className={`${lora.className} min-h-full flex flex-col font-serif`}>
+        <ProjectPageBar />
         {children}
       </body>
     </html>
