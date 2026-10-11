@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const PAGE_LINKS = [
@@ -34,33 +33,37 @@ const PAGE_LINKS = [
 ];
 
 export function ProjectPageBar() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-
-  if (pathname === "/home") return null;
 
   return (
     <>
-      <aside
-        aria-label="Project navigation"
-        className={`fixed left-0 top-0 z-50 h-screen bg-[#0b1b41] text-white shadow-xl transition-all duration-200 ${
-          open ? "w-64" : "w-16"
-        }`}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="fixed right-6 top-6 z-50 rounded-md bg-[#0b1b41] p-2.5 text-white shadow-md transition-colors hover:bg-[#162b5b]"
+        aria-label="Open project navigation"
+        aria-expanded={open}
       >
-        <div className="flex h-16 items-center justify-center border-b border-white/10">
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="rounded-md p-2 text-white transition-colors hover:bg-white/10"
-            aria-label={open ? "Close project navigation" : "Open project navigation"}
-            aria-expanded={open}
-          >
-            {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
-          </button>
-        </div>
+        <Menu className="h-7 w-7" />
+      </button>
 
-        {open && (
-          <nav className="flex h-[calc(100vh-4rem)] flex-col gap-1 overflow-y-auto px-3 py-4">
+      {open && (
+        <aside
+          aria-label="Project navigation"
+          className="fixed right-0 top-0 z-[60] h-screen w-72 bg-[#0b1b41] text-white shadow-xl"
+        >
+          <div className="flex h-16 items-center justify-end border-b border-white/10 px-5">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-md p-2 text-white transition-colors hover:bg-white/10"
+              aria-label="Close project navigation"
+            >
+              <X className="h-7 w-7" />
+            </button>
+          </div>
+
+          <nav className="flex h-[calc(100vh-4rem)] flex-col gap-1 overflow-y-auto px-4 py-4">
             <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-white/50">
               InternLink pages
             </p>
@@ -75,8 +78,8 @@ export function ProjectPageBar() {
               </Link>
             ))}
           </nav>
-        )}
-      </aside>
+        </aside>
+      )}
     </>
   );
 }
