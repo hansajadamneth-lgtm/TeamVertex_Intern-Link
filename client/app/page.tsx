@@ -204,10 +204,6 @@ export default function ResumeManagementPage() {
     <main className="flex min-h-screen flex-col bg-[#f4f4f4] text-[#101010]">
       <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col bg-white shadow-sm">
         <header>
-          <h1 className="px-4 pb-2 pt-1 text-[16px] font-normal text-[#9a9a9a]">
-            Resume Management
-          </h1>
-
           <nav className="mx-0 flex min-h-[72px] items-center rounded-b-[9px] bg-[#0b142b] px-6 sm:px-10">
             <Link href="/" aria-label="InternLink home" className="shrink-0">
               <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white">
@@ -228,8 +224,14 @@ export default function ResumeManagementPage() {
               <Link href="/" className="transition-opacity hover:opacity-70">
                 CV builder
               </Link>
-              <Link href="/home#recommendations" className="transition-opacity hover:opacity-70">
+              <Link href="/recommendations" className="transition-opacity hover:opacity-70">
                 Recommendation
+              </Link>
+              <Link href="/applications" className="transition-opacity hover:opacity-70">
+                Applications
+              </Link>
+              <Link href="/notifications" className="transition-opacity hover:opacity-70">
+                Notifications
               </Link>
               <Link href="/saved-jobs" className="transition-opacity hover:opacity-70">
                 Saved

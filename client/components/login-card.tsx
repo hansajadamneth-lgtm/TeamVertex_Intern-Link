@@ -87,9 +87,8 @@ export function LoginCard() {
 
       console.log("Logged in user:", data.user);
 
-      // For now, go to the home page after successful login
       setTimeout(() => {
-        router.push("/");
+        router.push("/home");
       }, 1000);
     } catch (error) {
       console.error("Login error:", error);
