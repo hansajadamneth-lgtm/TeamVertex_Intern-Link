@@ -7,9 +7,9 @@ import { Check, Copy, FileText, Sparkles } from "lucide-react";
 
 const navItems = [
   { label: "AI Cover Letter", href: "/cover-letter", active: true },
-  { label: "Recommendations", href: "#recommendations" },
-  { label: "Applications", href: "#applications", count: 4 },
-  { label: "Notifications", href: "#notifications" },
+  { label: "Recommendations", href: "/home#recommendations" },
+  { label: "Applications", href: "/applications", count: 4 },
+  { label: "Notifications", href: "/applications#notifications" },
 ];
 
 const defaultForm = {
@@ -60,7 +60,7 @@ Hansaja Damneth`;
           </Link>
           <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-1 text-[9px] text-white sm:gap-3">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className={`flex items-center gap-1.5 rounded-md px-2 py-2 transition-colors sm:px-3 ${
@@ -69,10 +69,10 @@ Hansaja Damneth`;
               >
                 {item.label}
                 {item.count && <span className="rounded-full bg-[#667085] px-1.5 py-0.5 text-[8px]">{item.count}</span>}
-              </a>
+              </Link>
             ))}
           </div>
-          <button type="button" className="hidden text-[10px] text-slate-300 hover:text-white sm:block">Sign out</button>
+          <Link href="/login" className="hidden text-[10px] text-slate-300 hover:text-white sm:block">Sign out</Link>
         </nav>
       </header>
 

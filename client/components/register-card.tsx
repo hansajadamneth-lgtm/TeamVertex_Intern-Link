@@ -325,11 +325,11 @@ export function RegisterCard() {
             />
             <label htmlFor="terms" className="text-xs text-gray-600">
               I agree to the{" "}
-              <Link href="#" className="font-semibold text-[#FF6B35] hover:underline">
+              <Link href="/terms-of-service" className="font-semibold text-[#FF6B35] hover:underline">
                 Terms &amp; Conditions
               </Link>{" "}
               and{" "}
-              <Link href="#" className="font-semibold text-[#FF6B35] hover:underline">
+              <Link href="/privacy-policy" className="font-semibold text-[#FF6B35] hover:underline">
                 Privacy Policy
               </Link>
             </label>

@@ -222,24 +222,24 @@ export default function ResumeManagementPage() {
             </Link>
 
             <div className="ml-auto flex items-center gap-5 text-[10px] text-white sm:gap-10 sm:text-[11px]">
-              <a href="#find-jobs" className="transition-opacity hover:opacity-70">
+              <Link href="/job-details" className="transition-opacity hover:opacity-70">
                 Find jobs
-              </a>
-              <a href="#cv-builder" className="transition-opacity hover:opacity-70">
+              </Link>
+              <Link href="/" className="transition-opacity hover:opacity-70">
                 CV builder
-              </a>
-              <a href="#recommendation" className="transition-opacity hover:opacity-70">
+              </Link>
+              <Link href="/home#recommendations" className="transition-opacity hover:opacity-70">
                 Recommendation
-              </a>
-              <a href="#saved" className="transition-opacity hover:opacity-70">
+              </Link>
+              <Link href="/saved-jobs" className="transition-opacity hover:opacity-70">
                 Saved
-              </a>
-              <button
-                type="button"
+              </Link>
+              <Link
+                href="/login"
                 className="rounded-full bg-[#ff7417] px-5 py-2 text-[8px] font-medium uppercase tracking-wide text-white transition-colors hover:bg-[#e9650b]"
               >
                 Sign out
-              </button>
+              </Link>
             </div>
           </nav>
         </header>
@@ -268,9 +268,9 @@ export default function ResumeManagementPage() {
         </section>
 
         <footer className="flex min-h-[49px] items-center justify-end gap-6 bg-[#0b142b] px-8 text-[9px] text-white sm:gap-9">
-          <a href="#privacy" className="hover:opacity-70">Privacy Policy</a>
-          <a href="#terms" className="hover:opacity-70">Terms of Service</a>
-          <a href="#contact" className="hover:opacity-70">Contact us</a>
+          <Link href="/privacy-policy" className="hover:opacity-70">Privacy Policy</Link>
+          <Link href="/terms-of-service" className="hover:opacity-70">Terms of Service</Link>
+          <Link href="/contact" className="hover:opacity-70">Contact us</Link>
         </footer>
       </div>
     </main>

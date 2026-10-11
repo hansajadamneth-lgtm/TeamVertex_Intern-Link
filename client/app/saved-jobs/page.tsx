@@ -55,8 +55,8 @@ function Header({ active }: { active: string }) {
   const links = [
     ["Home", "/home"],
     ["Find jobs", "/job-details"],
-    ["cv builder", "/cover-letter"],
-    ["Recommendation", "#recommendation"],
+    ["cv builder", "/"],
+    ["Recommendation", "/home#recommendations"],
     ["Saved", "/saved-jobs"],
   ];
   return (
@@ -64,7 +64,7 @@ function Header({ active }: { active: string }) {
       <nav className="mx-auto flex max-w-[1120px] items-center justify-between">
         <Link href="/home" aria-label="InternLink home"><span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white"><Image src="/internlink-logo.png" alt="InternLink" width={40} height={40} className="h-full w-full object-contain" /></span></Link>
         <div className="hidden items-center gap-6 text-[10px] text-white sm:flex">{links.map(([label, href]) => <Link key={label} href={href} className={label === active ? "font-bold text-white" : "text-slate-300 hover:text-white"}>{label}</Link>)}</div>
-        <button type="button" className="rounded-full bg-[#ff7417] px-5 py-2 text-[8px] font-semibold uppercase text-white hover:bg-[#e4640e]">Sign out</button>
+        <Link href="/login" className="rounded-full bg-[#ff7417] px-5 py-2 text-[8px] font-semibold uppercase text-white hover:bg-[#e4640e]">Sign out</Link>
       </nav>
     </header>
   );

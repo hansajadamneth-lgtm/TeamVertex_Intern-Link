@@ -40,7 +40,7 @@ export default function AdminLayout({
             </Link>
 
             <Link
-              href="/admin/students"
+              href="/admin/dashboard#users"
               className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
             >
               <span>♙</span>
@@ -56,7 +56,7 @@ export default function AdminLayout({
             </Link>
 
             <Link
-              href="/admin/internships"
+              href="/admin/internship-posts"
               className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
             >
               <span>▤</span>
@@ -64,7 +64,7 @@ export default function AdminLayout({
             </Link>
 
             <Link
-              href="/admin/reports"
+              href="/admin/dashboard#reports"
               className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
             >
               <span>▥</span>

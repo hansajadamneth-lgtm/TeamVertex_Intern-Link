@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { label: "Home", href: "/home" },
-  { label: "Find jobs", href: "#" },
-  { label: "cv builder", href: "#" },
-  { label: "Recommendation", href: "#" },
-  { label: "Saved", href: "#" },
+  { label: "Find jobs", href: "/job-details" },
+  { label: "cv builder", href: "/" },
+  { label: "Recommendation", href: "/home#recommendations" },
+  { label: "Saved", href: "/saved-jobs" },
 ];
 
 export function HomeNavbar() {
@@ -48,7 +48,9 @@ export function HomeNavbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:block">
-          <Button size="sm" className="rounded-full px-5 text-xs uppercase">Sign Out</Button>
+          <Link href="/login">
+            <Button size="sm" className="rounded-full px-5 text-xs uppercase">Sign Out</Button>
+          </Link>
         </div>
 
         {/* Mobile menu toggle */}
@@ -76,7 +78,9 @@ export function HomeNavbar() {
               {link.label}
             </Link>
           ))}
-          <Button className="mt-2 w-full rounded-md">Sign Out</Button>
+          <Link href="/login" className="mt-2">
+            <Button className="w-full rounded-md">Sign Out</Button>
+          </Link>
         </nav>
       )}
     </header>

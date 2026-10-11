@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
         {/* Main dashboard sections */}
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           {/* Recent Jobs */}
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div id="reports" className="rounded-xl bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-semibold text-gray-800">
                 Recent Job Posts
@@ -260,7 +260,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Users */}
-        <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
+        <div id="users" className="mt-6 rounded-xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">
               Recent Users

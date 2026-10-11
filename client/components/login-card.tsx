@@ -177,7 +177,7 @@ export function LoginCard() {
 
             <div className="text-right">
               <Link
-                href="#"
+                href="/forgot-password"
                 className="text-xs font-medium text-il-orange hover:underline"
               >
                 Forgot Password?
