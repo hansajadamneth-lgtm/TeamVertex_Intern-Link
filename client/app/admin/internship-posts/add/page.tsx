@@ -127,9 +127,8 @@ export default function AddInternshipPostPage() {
             <button
               type="button"
               onClick={() => {
- alert("Internship published: " + jobTitle);
-  window.location.href = "/admin/internship-posts";
-}}
+                window.location.href = "/admin/internship-posts";
+              }}
               className="rounded-lg bg-[#ff7a00] px-6 py-3 font-semibold text-white hover:bg-[#e96d00]"
             >
               Publish Post

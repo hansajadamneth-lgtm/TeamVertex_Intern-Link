@@ -11,7 +11,11 @@ const lora = Lora({
 
 export const metadata: Metadata = {
   title: "InternLink",
-  description: "Find Your Dream Internship. Build Your Future.",
+  description: "AI-powered recruitment and internship matching platform connecting students and employers.",
+  openGraph: {
+    title: "InternLink",
+    description: "AI-powered recruitment and internship matching platform connecting students and employers.",
+  },
 };
 
 export default function RootLayout({

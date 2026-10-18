@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, ClipboardList, Download, Eye, X } from "lucide-react";
 
 type ApplicationStatus = "Interview scheduled" | "Under review" | "Application sent";
@@ -16,7 +16,7 @@ type Application = {
   action: "View Invite" | "Details Pending" | "Download Copy";
 };
 
-const applications: Application[] = [
+const defaultApplications: Application[] = [
   {
     company: "WSO2 Lanka",
     position: "Associate Software Engineer",
@@ -60,6 +60,26 @@ const navItems = [
 
 export default function ApplicationsPage() {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [items, setItems] = useState<Application[]>(defaultApplications);
+
+  useEffect(() => {
+    fetch("/api/applications/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped: Application[] = data.data.map((app: { companyName?: string; company?: { name?: string } | string; position?: string; job?: { title?: string }; createdAt?: string; date?: string; fitScore?: number; fit?: number; status?: ApplicationStatus; action?: "View Invite" | "Details Pending" | "Download Copy" }) => ({
+            company: app.companyName || (typeof app.company === "object" ? app.company?.name : app.company) || "Company",
+            position: app.position || (typeof app.job === "object" ? app.job?.title : "Internship Role") || "Internship Role",
+            date: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : app.date || "Recent",
+            fit: app.fitScore || app.fit || 85,
+            status: app.status || "Application sent",
+            action: app.action || "Download Copy",
+          }));
+          setItems(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#f4f7fa] text-[#17233b]">
@@ -117,7 +137,7 @@ export default function ApplicationsPage() {
             <span className="text-right">Action board</span>
           </div>
           <div className="divide-y divide-[#e7ecf1]">
-            {applications.map((application) => (
+            {items.map((application) => (
               <div key={`${application.company}-${application.position}`} className="grid gap-3 px-5 py-4 transition-colors hover:bg-[#fbfcfd] md:grid-cols-[1.45fr_1fr_0.8fr_1.25fr_0.9fr] md:items-center">
                 <div>
                   <p className="text-[11px] font-semibold text-[#17233b]">{application.position}</p>

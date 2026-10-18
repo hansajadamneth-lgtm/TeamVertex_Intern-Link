@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Search, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const jobs = [
+const initialJobs = [
   { id: 1, category: "IT", title: "Frontend engineer", company: "Horizon Labs", location: "Colombo", match: 84 },
   { id: 2, category: "Marketing", title: "Digital marketing intern", company: "Northwind", location: "Remote", match: 90 },
   { id: 3, category: "Finance", title: "Financial analyst intern", company: "Solvex", location: "Kandy", match: 84 },
@@ -21,8 +21,30 @@ export default function JobDetailsPage() {
   const [selectedId, setSelectedId] = useState(1);
   const [saved, setSaved] = useState(false);
   const [rating, setRating] = useState(3);
-  const categoryJobs = jobs.filter((job) => job.category === activeCategory);
-  const selected = categoryJobs.find((job) => job.id === selectedId) ?? categoryJobs[0] ?? jobs[0];
+  const [applied, setApplied] = useState(false);
+  const [jobList, setJobList] = useState(initialJobs);
+
+  useEffect(() => {
+    fetch("/api/jobs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped = data.data.map((j: { id?: number; category?: string; title?: string; companyName?: string; location?: string; match?: number }, idx: number) => ({
+            id: j.id || idx + 1,
+            category: j.category || "IT",
+            title: j.title || "Internship Role",
+            company: j.companyName || "Company",
+            location: j.location || "Remote",
+            match: j.match || 85,
+          }));
+          setJobList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const categoryJobs = jobList.filter((job) => job.category === activeCategory);
+  const selected = categoryJobs.find((job) => job.id === selectedId) ?? categoryJobs[0] ?? jobList[0];
   const filteredJobs = categoryJobs.filter((job) => `${job.title} ${job.company} ${job.location}`.toLowerCase().includes(query.toLowerCase()));
 
   return (
@@ -41,7 +63,7 @@ export default function JobDetailsPage() {
           </aside>
           <article className="order-1 rounded-lg border border-[#d9dfe5] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.14)] lg:order-2">
             <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-normal">{selected.title}</h2><p className="text-base">{selected.company} · {selected.location}</p></div><button type="button" aria-label={saved ? "Remove saved job" : "Save job"} onClick={() => setSaved(!saved)} className="text-[#ff7417]"><Heart className="h-4 w-4" fill={saved ? "currentColor" : "none"} /></button></div>
-            <button type="button" onClick={() => window.alert("Application started for this job.")} className="mt-7 w-full rounded-full bg-[#ff7417] py-3 text-sm font-semibold text-white hover:bg-[#e4640e]">Apply on employer site</button>
+            <button type="button" onClick={() => setApplied(true)} className="mt-7 w-full rounded-full bg-[#ff7417] py-3 text-sm font-semibold text-white hover:bg-[#e4640e]">{applied ? "✓ Application Started" : "Apply on employer site"}</button>
             <section className="mt-5 bg-[#e9e9e9] p-5"><h3 className="text-center text-sm font-semibold">Pay Details</h3><p className="mt-4 text-sm">$61K – $122K/yr<br />Total pay</p></section>
             <section className="mt-4 bg-[#e9e9e9] p-5"><h3 className="text-center text-sm font-semibold">Qualifications</h3><p className="mt-4 text-sm">Bachelor&apos;s degree or equivalent (computer science, information technology, or related field)<br />Experience with both Object Oriented and Functional Programming approaches<br />Experience with Java, JMS, Angular, Hibernate, Camel, Spring<br />Experience with REST<br />Experience with Web services</p></section>
             <div className="mt-5 flex justify-center gap-2">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" aria-label={`Rate ${value} stars`} onClick={() => setRating(value)} className={value <= rating ? "text-[#ff7417]" : "text-[#d1d1d1]"}><Star className="h-7 w-7" fill="currentColor" /></button>)}</div>

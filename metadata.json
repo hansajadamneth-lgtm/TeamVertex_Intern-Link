@@ -1,0 +1,8 @@
+{
+  "name": "InternLink",
+  "description": "AI-powered recruitment and internship matching platform connecting students and employers.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
