@@ -1,6 +1,8 @@
 const assert = require("assert");
 const http = require("http");
 
+process.env.NODE_ENV = "test";
+
 console.log("Starting Phase 8: API Proxy & Full-Stack Readiness Test Suite...\n");
 
 async function runTests() {
