@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 
 /**
+ * Check whether a remote Express backend URL is configured
+ */
+export function isBackendConfigured(): boolean {
+  return Boolean(process.env.BACKEND_URL || process.env.API_BASE_URL);
+}
+
+/**
  * Server-only utility to forward Next.js API requests to the Express backend
  * when BACKEND_URL or API_BASE_URL is configured in environment variables.
  */
@@ -23,8 +30,8 @@ export async function forwardToBackend(
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
       const lower = key.toLowerCase();
-      // Forward relevant client headers but avoid forwarding host
-      if (lower !== "host" && lower !== "connection") {
+      // Forward relevant client headers but avoid forwarding host, connection, content-length
+      if (lower !== "host" && lower !== "connection" && lower !== "content-length") {
         headers[key] = value;
       }
     });
@@ -34,7 +41,7 @@ export async function forwardToBackend(
       headers,
     };
 
-    if (["POST", "PUT", "PATCH"].includes(request.method.toUpperCase())) {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method.toUpperCase())) {
       try {
         const bodyText = await request.text();
         if (bodyText) {
@@ -51,7 +58,9 @@ export async function forwardToBackend(
     const forwardHeaders = new Headers();
     backendResponse.headers.forEach((val, key) => {
       const lower = key.toLowerCase();
-      if (lower === "set-cookie" || lower === "content-type") {
+      if (lower === "set-cookie") {
+        forwardHeaders.append(key, val);
+      } else if (!["content-encoding", "transfer-encoding"].includes(lower)) {
         forwardHeaders.set(key, val);
       }
     });

@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+import { forwardToBackend } from "@/lib/api-proxy";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/admin/stats");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
   return NextResponse.json({
     success: true,
     data: {

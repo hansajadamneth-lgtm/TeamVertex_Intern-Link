@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forwardToBackend } from "@/lib/api-proxy";
 
 const initialStudents = [
   { id: "STU-1024", fullName: "Sarah Williams", email: "sarah.williams@email.com", education: "Computer Science", status: "Active" },
@@ -9,6 +10,13 @@ const initialStudents = [
 ];
 
 export async function GET(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/admin/students");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search");
 

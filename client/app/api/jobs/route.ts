@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forwardToBackend } from "@/lib/api-proxy";
 
 const initialJobs = [
   {
@@ -89,6 +90,13 @@ const initialJobs = [
 ];
 
 export async function GET(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/jobs");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const search = searchParams.get("search") || searchParams.get("keyword");
@@ -120,4 +128,38 @@ export async function GET(request: Request) {
     total: filtered.length,
     data: filtered,
   });
+}
+
+export async function POST(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/jobs");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
+  try {
+    const body = await request.clone().json();
+    const newJob = {
+      _id: "job-" + Date.now(),
+      id: Date.now(),
+      ...body,
+      status: body.status || "Active",
+      createdAt: new Date().toISOString(),
+      applicationsCount: 0,
+    };
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Job created successfully (preview mode)",
+        data: newJob,
+      },
+      { status: 201 }
+    );
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Invalid request payload" },
+      { status: 400 }
+    );
+  }
 }

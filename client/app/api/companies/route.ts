@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forwardToBackend } from "@/lib/api-proxy";
 
 const initialCompanies = [
   {
@@ -54,6 +55,13 @@ const initialCompanies = [
 ];
 
 export async function GET(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/companies");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") || searchParams.get("keyword");
   const status = searchParams.get("status");
@@ -80,4 +88,37 @@ export async function GET(request: Request) {
     total: filtered.length,
     data: filtered,
   });
+}
+
+export async function POST(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/companies");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
+  try {
+    const body = await request.clone().json();
+    const newCompany = {
+      _id: "comp-" + Date.now(),
+      id: Date.now(),
+      ...body,
+      status: "Pending",
+      joinedDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+    };
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Company registered successfully (preview mode)",
+        data: newCompany,
+      },
+      { status: 201 }
+    );
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Invalid company payload" },
+      { status: 400 }
+    );
+  }
 }

@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { findUserByEmail, createUser } from "@/lib/auth-store";
+import { forwardToBackend } from "@/lib/api-proxy";
 
 export async function POST(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/auth/register");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback mode (when BACKEND_URL is not set)
   try {
-    const body = await request.json();
+    const body = await request.clone().json();
     const { fullName, email, password, role } = body;
 
     if (!fullName || !email || !password) {

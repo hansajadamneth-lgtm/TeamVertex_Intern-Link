@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forwardToBackend } from "@/lib/api-proxy";
 
 const initialApplications = [
   {
@@ -39,7 +40,14 @@ const initialApplications = [
   },
 ];
 
-export async function GET() {
+export async function GET(request: Request) {
+  // 1. Forward to real Express backend if configured
+  const backendResponse = await forwardToBackend(request, "/api/applications/me");
+  if (backendResponse) {
+    return backendResponse;
+  }
+
+  // 2. Local preview fallback
   return NextResponse.json({
     success: true,
     count: initialApplications.length,
