@@ -10,7 +10,15 @@ export async function GET(request: Request) {
     }
   }
 
-  // Next.js client proxy fallback
+  // Preview mode is never considered healthy in production.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { status: "unavailable", message: "Backend service is not configured." },
+      { status: 503 }
+    );
+  }
+
+  // Local development preview only.
   return NextResponse.json({
     status: "ok",
     message: "InternLink Next.js web application is operational",
