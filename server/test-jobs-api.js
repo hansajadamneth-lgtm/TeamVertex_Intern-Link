@@ -127,7 +127,7 @@ async function runTests() {
     const origFindById = Job.findById;
     Job.findById = (id) => ({
       populate: () => ({
-        populate: async () => ({ _id: id, title: "Data Analyst Intern" }),
+        populate: async () => ({ _id: id, title: "Data Analyst Intern", status: "Active" }),
       }),
     });
 
