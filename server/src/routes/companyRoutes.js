@@ -6,14 +6,14 @@ const {
   updateCompanyStatus,
   updateCompany,
 } = require("../controllers/companyController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, optionalAuth } = require("../middleware/authMiddleware");
 const { authorize } = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
 // Public routes
-router.get("/", getCompanies);
-router.get("/:id", getCompanyById);
+router.get("/", optionalAuth, getCompanies);
+router.get("/:id", optionalAuth, getCompanyById);
 
 // Employer & Admin routes
 router.post("/", protect, authorize("employer", "admin"), createCompany);
