@@ -18,8 +18,14 @@ export async function forwardToBackend(
   const backendBase =
     process.env.BACKEND_URL || process.env.API_BASE_URL;
 
-  // If no backend URL is configured, return null so routes can use local preview fallback
+  // Never allow demo authentication or mock API responses in production.
   if (!backendBase) {
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { success: false, message: "Backend service is not configured." },
+        { status: 503 }
+      );
+    }
     return null;
   }
 
@@ -78,7 +84,6 @@ export async function forwardToBackend(
         success: false,
         message:
           "Express backend service is currently unreachable or warming up (free-tier cold start). Please retry shortly.",
-        error: error.message,
       },
       { status: 503 }
     );
