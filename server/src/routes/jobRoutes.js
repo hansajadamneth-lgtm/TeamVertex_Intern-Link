@@ -6,14 +6,14 @@ const {
   updateJob,
   deleteJob,
 } = require("../controllers/jobController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, optionalAuth } = require("../middleware/authMiddleware");
 const { authorize } = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
 // Public routes
-router.get("/", getJobs);
-router.get("/:id", getJobById);
+router.get("/", optionalAuth, getJobs);
+router.get("/:id", optionalAuth, getJobById);
 
 // Protected routes (Employers & Admins only)
 router.post("/", protect, authorize("employer", "admin"), createJob);
