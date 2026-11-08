@@ -75,6 +75,36 @@ const protect = async (req, res, next) => {
   }
 };
 
+/**
+ * Attach an authenticated user when a valid token is present without requiring
+ * authentication for public listings. Invalid/expired tokens remain anonymous.
+ * Database failures are not silently treated as anonymous.
+ */
+const optionalAuth = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  const token = authorization && authorization.startsWith("Bearer ")
+    ? authorization.slice(7)
+    : req.cookies && req.cookies.token;
+
+  if (!token || !process.env.JWT_SECRET) return next();
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return next();
+  }
+
+  try {
+    const user = await User.findById(decoded.id).select("-password");
+    if (user && user.status === "Active") req.user = user;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   protect,
+  optionalAuth,
 };
