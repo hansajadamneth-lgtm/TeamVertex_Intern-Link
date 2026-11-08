@@ -16,22 +16,26 @@ export default async function AdminLayout({
   const token = (await cookies()).get("token")?.value;
   if (!token) redirect("/login");
 
-  let currentRole: string | undefined;
+  // Fail closed if the backend is unavailable or the session is invalid.
+  let response: Response;
   try {
-    const response = await fetch(`${backendUrl.replace(/\\/$/, "")}/api/auth/me`, {
+    response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/auth/me`, {
       headers: { Cookie: `token=${encodeURIComponent(token)}` },
       cache: "no-store",
     });
-    if (!response.ok) redirect("/login");
-    const payload = await response.json();
-    if (!payload.success || !payload.user) redirect("/login");
-    currentRole = payload.user.role;
-  } catch (error) {
-    // Redirects thrown by Next.js are handled outside this catch below.
-    if (error && typeof error === "object" && "digest" in error) throw error;
+  } catch {
     redirect("/login");
   }
-  if (currentRole !== "admin") redirect("/home");
+
+  if (!response.ok) redirect("/login");
+  let payload: { success?: boolean; user?: { role?: string } };
+  try {
+    payload = await response.json();
+  } catch {
+    redirect("/login");
+  }
+  if (!payload.success || !payload.user) redirect("/login");
+  if (payload.user.role !== "admin") redirect("/home");
 
   return (
     <div className="flex min-h-screen bg-gray-100">
