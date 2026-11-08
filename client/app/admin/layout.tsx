@@ -1,11 +1,38 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The Express /api/auth/me endpoint validates the existing JWT cookie and
+  // loads the current user from MongoDB. Never trust a browser-provided role.
+  const backendUrl = process.env.BACKEND_URL || process.env.API_BASE_URL;
+  if (!backendUrl) redirect("/login");
+
+  const token = (await cookies()).get("token")?.value;
+  if (!token) redirect("/login");
+
+  let currentRole: string | undefined;
+  try {
+    const response = await fetch(`${backendUrl.replace(/\\/$/, "")}/api/auth/me`, {
+      headers: { Cookie: `token=${encodeURIComponent(token)}` },
+      cache: "no-store",
+    });
+    if (!response.ok) redirect("/login");
+    const payload = await response.json();
+    if (!payload.success || !payload.user) redirect("/login");
+    currentRole = payload.user.role;
+  } catch (error) {
+    // Redirects thrown by Next.js are handled outside this catch below.
+    if (error && typeof error === "object" && "digest" in error) throw error;
+    redirect("/login");
+  }
+  if (currentRole !== "admin") redirect("/home");
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
