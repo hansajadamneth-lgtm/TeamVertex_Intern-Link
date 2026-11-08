@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
@@ -33,16 +34,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Database connection
-connectDB().catch((err) => {
-  console.warn("MongoDB connection warning:", err.message);
-});
-
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "InternLink backend is running",
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? "ok" : "unavailable",
+    database: databaseReady ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });
 });
@@ -60,9 +57,18 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
+async function startServer() {
+  // Fail startup rather than accepting requests without a working database.
+  await connectDB();
+  return app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+  });
+}
+
+if (process.env.NODE_ENV !== "test") {
+  startServer().catch((error) => {
+    console.error("Server startup failed:", error.message);
+    process.exit(1);
   });
 }
 
