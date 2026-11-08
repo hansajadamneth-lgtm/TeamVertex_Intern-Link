@@ -21,14 +21,20 @@ const getJobs = async (req, res, next) => {
 
     const query = {};
 
-    // 1. Status Filter (default to "Active" for public view unless explicit status requested)
-    if (status) {
-      if (status !== "all") {
-        query.status = status;
+    // Only verified admins can query non-active or all statuses.
+    if (status && status !== "Active") {
+      if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Admin access is required to view non-active internship posts.",
+        });
       }
-    } else {
-      query.status = "Active";
+      if (!["all", "Pending", "Closed"].includes(status)) {
+        return res.status(400).json({ success: false, message: "Invalid status filter." });
+      }
     }
+    query.status = !status || status === "Active" ? "Active" : status === "all" ? undefined : status;
+    if (query.status === undefined) delete query.status;
 
     // 2. Category Filter
     if (category && category !== "All") {
@@ -107,10 +113,15 @@ const getJobById = async (req, res, next) => {
       .populate("company", "name industry website location status description")
       .populate("postedBy", "fullName email");
 
-    if (!job) {
+    // Only active posts are public. Admins and the post owner may inspect drafts.
+    const canViewPrivatePost = req.user && (
+      req.user.role === "admin" ||
+      (job && job.postedBy && String(job.postedBy._id || job.postedBy) === String(req.user._id))
+    );
+    if (!job || (job.status !== "Active" && !canViewPrivatePost)) {
       return res.status(404).json({
         success: false,
-        message: `Internship post not found with identifier: ${req.params.id}`,
+        message: "Internship post not found.",
       });
     }
 
