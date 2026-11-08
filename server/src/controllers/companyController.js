@@ -19,14 +19,20 @@ const getCompanies = async (req, res, next) => {
 
     const query = {};
 
-    // 1. Status Filter (default to Verified for public view)
-    if (status) {
-      if (status !== "all") {
-        query.status = status;
+    // Non-verified companies must not appear in public directory results.
+    if (status && status !== "Verified") {
+      if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Admin access is required to view non-verified companies.",
+        });
       }
-    } else {
-      query.status = "Verified";
+      if (!["all", "Pending", "Suspended"].includes(status)) {
+        return res.status(400).json({ success: false, message: "Invalid status filter." });
+      }
     }
+    query.status = !status || status === "Verified" ? "Verified" : status === "all" ? undefined : status;
+    if (query.status === undefined) delete query.status;
 
     // 2. Industry Filter
     if (industry && industry !== "All") {
@@ -85,11 +91,12 @@ const getCompanyById = async (req, res, next) => {
       "fullName email"
     );
 
-    if (!company) {
-      return res.status(404).json({
-        success: false,
-        message: `Company not found with identifier: ${req.params.id}`,
-      });
+    const canViewPrivateCompany = req.user && (
+      req.user.role === "admin" ||
+      (company && company.owner && String(company.owner._id || company.owner) === String(req.user._id))
+    );
+    if (!company || (company.status !== "Verified" && !canViewPrivateCompany)) {
+      return res.status(404).json({ success: false, message: "Company not found." });
     }
 
     return res.status(200).json({
