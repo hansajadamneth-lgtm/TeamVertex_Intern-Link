@@ -54,7 +54,7 @@ export default function ResumeManagementPage() {
           setIsDragging(false);
           addFiles(event.dataTransfer.files);
         }}
-        className={`flex min-h-[136px] flex-col items-center justify-center rounded-[70px] border-2 px-4 text-center shadow-[0_2px_2px_rgba(0,0,0,0.22)] transition-colors ${
+        className={`flex min-h-[136px] flex-col items-center justify-center rounded-[32px] border-2 px-4 py-6 text-center shadow-[0_2px_2px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff7417] hover:shadow-[0_10px_24px_rgba(11,20,43,0.09)] sm:rounded-[70px] ${
           isDragging ? "border-[#ff7417] bg-orange-50" : "border-[#d0d0d0]"
         }`}
       >
@@ -64,7 +64,7 @@ export default function ResumeManagementPage() {
         </svg>
         <p className="text-[16px] text-[#273246]">Drag and drop your resume</p>
         <p className="text-[10px] text-[#667084]">PDF or DOCX, up to 5 MB</p>
-        <button type="button" onClick={() => inputRef.current?.click()} className="mt-5 rounded-[10px] bg-[#d9d9d9] px-7 py-2 text-[12px] text-[#273246] transition-colors hover:bg-[#c8c8c8]">
+        <button type="button" onClick={() => inputRef.current?.click()} className="mt-5 rounded-[10px] bg-[#d9d9d9] px-7 py-2 text-[12px] text-[#273246] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#c8c8c8] hover:shadow-md">
           Browse Files
         </button>
         <input
@@ -201,10 +201,10 @@ export default function ResumeManagementPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f4f4f4] text-[#101010]">
-      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col bg-white shadow-sm">
+    <main className="flex min-h-screen w-full flex-col overflow-x-hidden bg-white text-[#101010]">
+      <div className="flex w-full flex-1 flex-col bg-white">
         <header>
-          <nav className="mx-0 flex min-h-[72px] items-center rounded-b-[9px] bg-[#0b142b] px-6 sm:px-10">
+          <nav className="flex min-h-[72px] w-full items-center rounded-b-[9px] bg-[#0b142b] px-5 sm:px-10 lg:px-14">
             <Link href="/" aria-label="InternLink home" className="shrink-0">
               <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white">
                 <Image
@@ -217,7 +217,7 @@ export default function ResumeManagementPage() {
               </span>
             </Link>
 
-            <div className="ml-auto flex items-center gap-5 text-[10px] text-white sm:gap-10 sm:text-[11px]">
+            <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-3 text-[10px] text-white sm:gap-x-8 sm:text-[11px]">
               <Link href="/job-details" className="transition-opacity hover:opacity-70">
                 Find jobs
               </Link>
@@ -246,14 +246,14 @@ export default function ResumeManagementPage() {
           </nav>
         </header>
 
-        <section className="flex flex-1 flex-col items-center px-4 pb-20 pt-8 sm:px-10">
-          <div className="mb-7 flex flex-wrap justify-center gap-2">
+        <section className="flex w-full flex-1 flex-col items-center px-4 pb-20 pt-8 sm:px-10 lg:px-14">
+          <div className="il-enter mb-7 flex flex-wrap justify-center gap-2">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`rounded-lg px-4 py-1 text-[10px] capitalize shadow-[0_2px_3px_rgba(0,0,0,0.18)] transition-colors ${
+                className={`rounded-lg px-4 py-1 text-[10px] capitalize shadow-[0_2px_3px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                   activeTab === tab
                     ? "bg-[#0b142b] font-semibold text-white"
                     : "bg-white text-[#1d2636] hover:bg-gray-100"
@@ -264,12 +264,12 @@ export default function ResumeManagementPage() {
             ))}
           </div>
 
-          <div className="w-full max-w-[955px] rounded-[14px] border border-[#999] px-6 py-5 sm:px-10 sm:py-8">
+          <div className="il-enter il-enter-delay w-full max-w-[1100px] rounded-[18px] border border-[#d7dce5] bg-white px-5 py-6 shadow-[0_12px_40px_rgba(11,20,43,0.05)] transition-shadow duration-300 hover:shadow-[0_18px_50px_rgba(11,20,43,0.09)] sm:px-10 sm:py-8">
             {renderActiveContent()}
           </div>
         </section>
 
-        <footer className="flex min-h-[49px] items-center justify-end gap-6 bg-[#0b142b] px-8 text-[9px] text-white sm:gap-9">
+        <footer className="flex min-h-[49px] flex-wrap items-center justify-center gap-5 bg-[#0b142b] px-8 py-3 text-[10px] text-white sm:justify-end sm:gap-9">
           <Link href="/privacy-policy" className="hover:opacity-70">Privacy Policy</Link>
           <Link href="/terms-of-service" className="hover:opacity-70">Terms of Service</Link>
           <Link href="/contact" className="hover:opacity-70">Contact us</Link>
