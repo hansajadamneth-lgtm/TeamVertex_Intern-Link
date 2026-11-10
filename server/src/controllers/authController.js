@@ -9,7 +9,10 @@ const setTokenCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    // The browser accesses Express through the same-origin Next.js API proxy.
+    // A site-wide cookie path is required for /api/cvs, /api/jobs and other endpoints.
+    sameSite: "lax",
+    path: "/",
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 };
