@@ -9,6 +9,8 @@ const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const companyRoutes = require("./routes/companyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const cvRoutes = require("./routes/cvRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -53,6 +55,8 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cvs", cvRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 // 404 & Centralized Error Handlers (registered after all routes)
 app.use(notFound);

@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node --test src/utils/matchEngine.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
