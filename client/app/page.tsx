@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 type ResumeStatus = "Analyzed" | "Processing";
 
@@ -58,15 +60,15 @@ export default function ResumeManagementPage() {
           isDragging ? "border-[#ff7417] bg-orange-50" : "border-[#d0d0d0]"
         }`}
       >
-        <svg aria-hidden="true" className="mb-1 h-5 w-5 text-[#536072]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg aria-hidden="true" className="mb-3 h-7 w-7 text-[#536072]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M12 16V4m0 0L8 8m4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M5 14v3a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-3" strokeLinecap="round" />
         </svg>
-        <p className="text-[16px] text-[#273246]">Drag and drop your resume</p>
-        <p className="text-[10px] text-[#667084]">PDF or DOCX, up to 5 MB</p>
-        <button type="button" onClick={() => inputRef.current?.click()} className="mt-5 rounded-[10px] bg-[#d9d9d9] px-7 py-2 text-[12px] text-[#273246] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#c8c8c8] hover:shadow-md">
+        <p className="text-lg font-semibold text-[#273246]">Drag and drop your resume</p>
+        <p className="text-sm text-[#667084]">PDF or DOCX, up to 5 MB</p>
+        <Button type="button" variant="outline" size="default" onClick={() => inputRef.current?.click()} className="mt-5">
           Browse Files
-        </button>
+        </Button>
         <input
           ref={inputRef}
           type="file"
@@ -81,10 +83,10 @@ export default function ResumeManagementPage() {
       </div>
 
       <div className="mt-10 px-3 sm:px-8">
-        <h2 className="text-[14px] font-normal">Uploaded resumes</h2>
+        <h2 className="text-lg font-semibold">Uploaded resumes</h2>
         <ul className="mt-5 space-y-3">
           {resumes.map((resume) => (
-            <li key={`${resume.name}-${resume.status}`} className="flex items-center justify-between gap-3 text-[12px]">
+            <li key={`${resume.name}-${resume.status}`} className="flex items-center justify-between gap-3 text-sm">
               <span className="flex min-w-0 items-center gap-2">
                 <svg aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-[#4d4d4d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
                   <path d="M6 3h8l4 4v14H6z" strokeLinejoin="round" />
@@ -92,7 +94,7 @@ export default function ResumeManagementPage() {
                 </svg>
                 <span className="truncate">{resume.name}</span>
               </span>
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${resume.status === "Analyzed" ? "bg-[#e8f9ed] text-[#36b768]" : "bg-[#fff7d9] text-[#e6b700]"}`}>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-sm ${resume.status === "Analyzed" ? "bg-[#e8f9ed] text-[#36b768]" : "bg-[#fff7d9] text-[#e6b700]"}`}>
                 {resume.status}
               </span>
             </li>
@@ -106,10 +108,10 @@ export default function ResumeManagementPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between border-b border-[#e5e5e5] pb-4">
         <div>
-          <p className="text-[18px] font-semibold text-[#0b142b]">Hansaja Damneth</p>
+          <p className="text-xl font-semibold text-[#0b142b]">Hansaja Damneth</p>
           <p className="mt-1 text-[11px] text-[#667084]">Frontend Developer · Colombo, Sri Lanka</p>
         </div>
-        <span className="rounded-full bg-[#e8f9ed] px-3 py-1 text-[10px] text-[#36a866]">Resume analyzed</span>
+        <span className="rounded-full bg-[#e8f9ed] px-3 py-1 text-xs text-[#36a866]">Resume analyzed</span>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {[
@@ -125,7 +127,7 @@ export default function ResumeManagementPage() {
         ))}
       </div>
       <div>
-        <h2 className="text-[13px] font-semibold text-[#0b142b]">Professional summary</h2>
+        <h2 className="text-base font-semibold text-[#0b142b]">Professional summary</h2>
         <p className="mt-2 rounded-lg bg-[#f7f8fa] p-4 text-[11px] leading-5 text-[#4b5565]">
           Motivated frontend developer with experience building responsive web applications and a strong interest in user-focused product development.
         </p>
@@ -151,7 +153,7 @@ export default function ResumeManagementPage() {
             <span className="text-[10px] text-[#667084]">out of 100</span>
           </div>
           <div>
-            <h2 className="text-[17px] font-semibold text-[#0b142b]">Your resume is strong</h2>
+            <h2 className="text-xl font-semibold text-[#0b142b]">Your resume is strong</h2>
             <p className="mt-2 max-w-md text-[11px] leading-5 text-[#667084]">You have a solid foundation for frontend internships. Improve your project impact and add a few in-demand tools to stand out.</p>
           </div>
         </div>
@@ -184,7 +186,7 @@ export default function ResumeManagementPage() {
         </div>
         {gaps.map(([title, description, progress, priority]) => (
           <div key={title} className="rounded-lg border border-[#e6e9ee] p-4">
-            <div className="flex items-start justify-between gap-3"><div><h3 className="text-[13px] font-semibold text-[#273246]">{title}</h3><p className="mt-1 text-[11px] text-[#667084]">{description}</p></div><span className={`rounded-full px-2 py-1 text-[9px] ${priority === "High priority" ? "bg-[#fff0ed] text-[#dc5b45]" : "bg-[#eef4ff] text-[#4775bd]"}`}>{priority}</span></div>
+            <div className="flex items-start justify-between gap-3"><div><h3 className="text-[13px] font-semibold text-[#273246]">{title}</h3><p className="mt-1 text-[11px] text-[#667084]">{description}</p></div><span className={`rounded-full px-2 py-1 text-xs ${priority === "High priority" ? "bg-[#fff0ed] text-[#dc5b45]" : "bg-[#eef4ff] text-[#4775bd]"}`}>{priority}</span></div>
             <div className="mt-3 flex items-center gap-3"><div className="h-2 flex-1 rounded-full bg-[#e1e5eb]"><div className="h-2 rounded-full bg-[#0b142b]" style={{ width: `${progress}%` }} /></div><span className="text-[10px] text-[#667084]">{progress}% ready</span></div>
           </div>
         ))}
@@ -204,7 +206,7 @@ export default function ResumeManagementPage() {
     <main className="flex min-h-screen w-full flex-col overflow-x-hidden bg-white text-[#101010]">
       <div className="flex w-full flex-1 flex-col bg-white">
         <header>
-          <nav className="flex min-h-[72px] w-full items-center rounded-b-[9px] bg-[#0b142b] px-5 sm:px-10 lg:px-14">
+          <nav className="flex min-h-[80px] w-full flex-wrap items-center gap-4 rounded-b-2xl bg-[#0b142b] px-5 py-3 sm:px-10 lg:px-14">
             <Link href="/" aria-label="InternLink home" className="shrink-0">
               <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white">
                 <Image
@@ -238,7 +240,7 @@ export default function ResumeManagementPage() {
               </Link>
               <Link
                 href="/login"
-                className="rounded-full bg-[#ff7417] px-5 py-2 text-[8px] font-medium uppercase tracking-wide text-white transition-colors hover:bg-[#e9650b]"
+                className="rounded-full bg-[#ff7417] px-5 py-2 text-xs font-medium uppercase tracking-wide text-white transition-colors hover:bg-[#e9650b]"
               >
                 Sign out
               </Link>
@@ -246,8 +248,8 @@ export default function ResumeManagementPage() {
           </nav>
         </header>
 
-        <section className="flex w-full flex-1 flex-col items-center px-4 pb-20 pt-8 sm:px-10 lg:px-14">
-          <div className="il-enter mb-7 flex flex-wrap justify-center gap-2">
+        <section className="flex w-full flex-1 flex-col items-center bg-[#f6f8fc] px-4 pb-20 pt-10 sm:px-10 lg:px-14">
+          <div className="il-enter mb-8 flex flex-wrap justify-center gap-3">
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -264,9 +266,9 @@ export default function ResumeManagementPage() {
             ))}
           </div>
 
-          <div className="il-enter il-enter-delay w-full max-w-[1100px] rounded-[18px] border border-[#d7dce5] bg-white px-5 py-6 shadow-[0_12px_40px_rgba(11,20,43,0.05)] transition-shadow duration-300 hover:shadow-[0_18px_50px_rgba(11,20,43,0.09)] sm:px-10 sm:py-8">
+          <Card className="il-enter il-enter-delay w-full max-w-[1100px]"><CardContent className="px-5 py-8 sm:px-10 sm:py-10">
             {renderActiveContent()}
-          </div>
+          </CardContent></Card>
         </section>
 
         <footer className="flex min-h-[49px] flex-wrap items-center justify-center gap-5 bg-[#0b142b] px-8 py-3 text-[10px] text-white sm:justify-end sm:gap-9">
