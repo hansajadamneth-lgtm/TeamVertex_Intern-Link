@@ -11,14 +11,14 @@ const NAV_LINKS = [
   { label: "Contact us", href: "/contact" },
 ];
 
-const NAV_LINK_CLASS = "text-sm text-gray-200 transition-colors hover:text-white";
+const NAV_LINK_CLASS = "rounded-xl px-3 py-2 text-sm text-gray-200 transition-all duration-200 hover:bg-white/10 hover:text-white";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="relative bg-il-navy">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
+    <header className="relative z-20 border-b border-white/10 bg-il-navy">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-10">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white">
@@ -36,7 +36,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden flex-1 items-center justify-evenly md:flex">
+        <nav className="hidden flex-1 items-center justify-evenly gap-2 md:flex">
           {NAV_LINKS.map((link) => (
             <Link key={link.label} href={link.href} className={NAV_LINK_CLASS}>
               {link.label}
