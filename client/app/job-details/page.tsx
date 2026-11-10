@@ -1,84 +1,80 @@
 "use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { Heart, Search, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-
-const initialJobs = [
-  { id: 1, category: "IT", title: "Frontend engineer", company: "Horizon Labs", location: "Colombo", match: 84 },
-  { id: 2, category: "Marketing", title: "Digital marketing intern", company: "Northwind", location: "Remote", match: 90 },
-  { id: 3, category: "Finance", title: "Financial analyst intern", company: "Solvex", location: "Kandy", match: 84 },
-  { id: 4, category: "Engineering", title: "Systems engineering intern", company: "Apex Technologies", location: "Colombo", match: 84 },
-  { id: 5, category: "IT", title: "Cloud solutions intern", company: "LSEG", location: "Colombo", match: 72 },
-];
-
-const categories = ["IT", "Marketing", "Finance", "Engineering"];
-
-export default function JobDetailsPage() {
-  const [activeCategory, setActiveCategory] = useState("IT");
-  const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(1);
-  const [saved, setSaved] = useState(false);
-  const [rating, setRating] = useState(3);
-  const [applied, setApplied] = useState(false);
-  const [jobList, setJobList] = useState(initialJobs);
-
-  useEffect(() => {
-    fetch("/api/jobs")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped = data.data.map((j: { id?: number; category?: string; title?: string; companyName?: string; location?: string; match?: number }, idx: number) => ({
-            id: j.id || idx + 1,
-            category: j.category || "IT",
-            title: j.title || "Internship Role",
-            company: j.companyName || "Company",
-            location: j.location || "Remote",
-            match: j.match || 85,
-          }));
-          setJobList(mapped);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const categoryJobs = jobList.filter((job) => job.category === activeCategory);
-  const selected = categoryJobs.find((job) => job.id === selectedId) ?? categoryJobs[0] ?? jobList[0];
-  const filteredJobs = categoryJobs.filter((job) => `${job.title} ${job.company} ${job.location}`.toLowerCase().includes(query.toLowerCase()));
-
-  return (
-    <main className="min-h-screen bg-[#f1f1f1] text-[#111a2e]">
-      <Header active="Find jobs" />
-      <section className="mx-auto min-h-[calc(100vh-76px)] max-w-[1120px] bg-white px-5 pb-12 pt-6 sm:px-10">
-        <h1 className="text-xl font-normal text-[#8b8b8b]">job details</h1>
-        <CategoryTabs active={activeCategory} onChange={setActiveCategory} />
-        <div className="mx-auto mt-7 grid max-w-[900px] gap-5 lg:grid-cols-[145px_1fr]">
-          <aside className="order-2 space-y-3 lg:order-1">
-            <label className="flex items-center rounded-lg border border-[#dfe4e9] bg-white px-3 py-2 shadow-sm lg:col-span-2">
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Job Title, company or Keyword" className="min-w-0 flex-1 text-[9px] outline-none placeholder:text-[#7f8997]" />
-              <Search className="h-3 w-3 text-[#7f8997]" />
-            </label>
-            {filteredJobs.map((job) => <button key={job.id} type="button" onClick={() => setSelectedId(job.id)} className={`w-full border-b border-[#d9d9d9] border-l-4 border-l-[#ff7417] bg-white p-3 text-left shadow-[0_2px_3px_rgba(0,0,0,0.12)] ${selected.id === job.id ? "ring-1 ring-[#ffb07d]" : ""}`}><p className="text-[9px]">{job.title}</p><p className="mt-1 text-[8px]">{job.company} · {job.location}</p><span className="mt-2 inline-block rounded-full bg-[#ffe1cf] px-3 py-1 text-[8px] text-[#ff7417]">{job.match}% match</span><p className="mt-1 text-[7px] text-[#9da4ae]">Posted · 4 days ago</p></button>)}
-          </aside>
-          <article className="order-1 rounded-lg border border-[#d9dfe5] bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.14)] lg:order-2">
-            <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-normal">{selected.title}</h2><p className="text-base">{selected.company} · {selected.location}</p></div><button type="button" aria-label={saved ? "Remove saved job" : "Save job"} onClick={() => setSaved(!saved)} className="text-[#ff7417]"><Heart className="h-4 w-4" fill={saved ? "currentColor" : "none"} /></button></div>
-            <button type="button" onClick={() => setApplied(true)} className="mt-7 w-full rounded-full bg-[#ff7417] py-3 text-sm font-semibold text-white hover:bg-[#e4640e]">{applied ? "✓ Application Started" : "Apply on employer site"}</button>
-            <section className="mt-5 bg-[#e9e9e9] p-5"><h3 className="text-center text-sm font-semibold">Pay Details</h3><p className="mt-4 text-sm">$61K – $122K/yr<br />Total pay</p></section>
-            <section className="mt-4 bg-[#e9e9e9] p-5"><h3 className="text-center text-sm font-semibold">Qualifications</h3><p className="mt-4 text-sm">Bachelor&apos;s degree or equivalent (computer science, information technology, or related field)<br />Experience with both Object Oriented and Functional Programming approaches<br />Experience with Java, JMS, Angular, Hibernate, Camel, Spring<br />Experience with REST<br />Experience with Web services</p></section>
-            <div className="mt-5 flex justify-center gap-2">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" aria-label={`Rate ${value} stars`} onClick={() => setRating(value)} className={value <= rating ? "text-[#ff7417]" : "text-[#d1d1d1]"}><Star className="h-7 w-7" fill="currentColor" /></button>)}</div>
-          </article>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function Header({ active }: { active: string }) {
-  const links = [["Home", "/home"], ["Find jobs", "/job-details"], ["cv builder", "/"], ["Recommendation", "/recommendations"], ["Saved", "/saved-jobs"]];
-  return <header className="bg-[#0b142b] px-4 py-3 sm:px-8"><nav className="mx-auto flex max-w-[1120px] items-center justify-between"><Link href="/home" aria-label="InternLink home"><span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white"><Image src="/internlink-logo.png" alt="InternLink" width={40} height={40} className="h-full w-full object-contain" /></span></Link><div className="hidden items-center gap-6 text-[10px] text-white sm:flex">{links.map(([label, href]) => <Link key={label} href={href} className={label === active ? "font-bold text-white" : "text-slate-300 hover:text-white"}>{label}</Link>)}</div><Link href="/login" className="rounded-full bg-[#ff7417] px-5 py-2 text-[8px] font-semibold uppercase text-white hover:bg-[#e4640e]">Sign out</Link></nav></header>;
-}
-
-function CategoryTabs({ active, onChange }: { active: string; onChange: (category: string) => void }) {
-  return <div className="mt-7 flex flex-wrap justify-center gap-3">{categories.map((category) => <button key={category} type="button" onClick={() => onChange(category)} className={`rounded-lg px-5 py-2 text-[10px] shadow-[0_2px_3px_rgba(0,0,0,0.15)] ${active === category ? "bg-[#0b142b] font-semibold text-white" : "bg-white text-[#17233b] hover:bg-[#f4f5f7]"}`}>{category}</button>)}</div>;
+import { Search, MapPin, ArrowRight, CheckCircle2 } from "lucide-react";
+type Job = { _id: string; title: string; companyName: string; location: string; category: string;
+ type: string; duration: string; description: string; requirements: string; skills: string[];
+ deadline?: string; salary?: string };
+const categories=["All","IT","Marketing","Finance","Engineering","Other"];
+export default function JobsPage() {
+ const [jobs,setJobs]=useState<Job[]>([]);
+ const [selected,setSelected]=useState<string>("");
+ const [search,setSearch]=useState(""),[category,setCategory]=useState("All");
+ const [loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
+ const [applying,setApplying]=useState(false);
+ useEffect(()=>{
+  const run=async()=>{
+   try{const r=await fetch("/api/jobs",{cache:"no-store"}),j=await r.json();
+    if(!r.ok||!j.success)throw new Error(j.message||"Could not load internships.");
+    const list:Job[]=j.data||[];setJobs(list);
+    const target=new URLSearchParams(window.location.search).get("job");
+    setSelected(list.find(x=>x._id===target)?target||"":list[0]?._id||"");
+   }catch(e){setError(e instanceof Error?e.message:"Unable to load jobs.");}
+   finally{setLoading(false);}
+  };run();
+ },[]);
+ const filtered=jobs.filter(j=>(category==="All"||j.category===category)&&
+  [j.title,j.companyName,j.location,...(j.skills||[])].join(" ").toLowerCase().includes(search.toLowerCase()));
+ const job=filtered.find(j=>j._id===selected)||filtered[0];
+ const apply=async()=>{
+  if(!job)return;setApplying(true);setError("");setNotice("");
+  try{
+   const r=await fetch("/api/applications",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({jobId:job._id})});const result=await r.json();
+   if(!r.ok||!result.success)throw new Error(result.message||"Application failed.");
+   setNotice("Application submitted! Track progress in My Applications.");
+  }catch(e){setError((e instanceof Error?e.message:"Application failed.")+" Sign in as a student if necessary.");}
+  finally{setApplying(false);}
+ };
+ return <main className="min-h-screen bg-[#f4f7fa] text-[#17233b]">
+  <header className="bg-[#0b142b] px-5 py-4 text-white"><nav className="mx-auto flex max-w-6xl items-center justify-between">
+   <Link href="/home" className="font-semibold">InternLink</Link><div className="flex gap-4 text-sm">
+    <Link href="/cv-builder">CV Builder</Link><Link href="/recommendations">Matches</Link><Link href="/applications">Applications</Link>
+   </div></nav></header>
+  <section className="mx-auto max-w-6xl px-5 py-9"><h1 className="text-3xl font-bold">Discover internships</h1>
+   <p className="mt-2 text-sm text-slate-500">Browse active opportunities from verified employers. Apply without leaving InternLink.</p>
+   <div className="mt-7 flex flex-wrap gap-3">
+    <label className="flex flex-1 items-center gap-2 rounded-lg bg-white px-4 py-3 shadow-sm"><Search size={16}/>
+      <input aria-label="Search internships" className="w-full outline-none" placeholder="Job title, skills or company" value={search} onChange={e=>setSearch(e.target.value)}/></label>
+    <select aria-label="Job category" value={category} onChange={e=>setCategory(e.target.value)} className="rounded-lg bg-white px-5 py-3 shadow-sm">
+     {categories.map(c=><option key={c}>{c}</option>)}
+    </select></div>
+   {error&&<p role="alert" className="mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+   {notice&&<p role="status" className="mt-5 rounded-lg bg-green-50 p-4 text-sm text-green-700">{notice}</p>}
+   {loading&&<p className="mt-7">Loading verified internships...</p>}
+   {!loading&&!filtered.length&&<p className="mt-7 rounded-lg bg-white p-6">No verified internships match your search.</p>}
+   <div className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.3fr)]">
+    <div className="space-y-3">{filtered.map(j=><button type="button" key={j._id} onClick={()=>{setSelected(j._id);setNotice("");}}
+      className={"w-full rounded-xl border bg-white p-5 text-left shadow-sm "+(job?._id===j._id?"border-[#ff7417]":"border-slate-200")}>
+      <span className="text-xs font-semibold uppercase text-[#ff7417]">{j.category}</span><h2 className="mt-2 font-semibold">{j.title}</h2>
+      <p className="mt-1 text-sm text-slate-500">{j.companyName}</p>
+      <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><MapPin size={13}/>{j.location} · {j.type}</p>
+     </button>)}</div>
+    {job&&<article className="self-start rounded-xl bg-white p-7 shadow-sm">
+     <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700"><CheckCircle2 size={13}/>Verified employer</span>
+     <h2 className="mt-4 text-2xl font-bold">{job.title}</h2><p className="mt-1 text-slate-500">{job.companyName} · {job.location}</p>
+     <p className="mt-2 text-sm text-slate-500">{job.type} · {job.duration||"Duration not specified"}</p>
+     {job.salary&&<p className="mt-3 text-sm">Compensation: {job.salary}</p>}
+     {job.deadline&&<p className="mt-2 text-sm">Deadline: {new Date(job.deadline).toLocaleDateString()}</p>}
+     <button disabled={applying} onClick={apply} className="mt-6 w-full rounded-lg bg-[#ff7417] py-3 font-semibold text-white disabled:opacity-50">
+       {applying?"Submitting...":"Apply for this internship"} <ArrowRight size={16} className="ml-2 inline"/></button>
+     <h3 className="mt-7 border-b pb-2 text-lg font-semibold">Description</h3>
+     <p className="mt-3 whitespace-pre-wrap text-sm leading-7">{job.description}</p>
+     <h3 className="mt-6 border-b pb-2 text-lg font-semibold">Requirements</h3>
+     <p className="mt-3 whitespace-pre-wrap text-sm leading-7">{job.requirements||"No additional requirements listed."}</p>
+     <div className="mt-4 flex flex-wrap gap-2">{(job.skills||[]).map(s=><span key={s} className="rounded-full bg-orange-50 px-3 py-1 text-xs text-orange-700">{s}</span>)}</div>
+    </article>}
+   </div>
+  </section>
+ </main>;
 }
