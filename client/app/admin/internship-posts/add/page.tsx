@@ -4,13 +4,13 @@ import { useState } from "react";
 export default function AddInternshipPostPage() {
   const [jobTitle, setJobTitle] = useState("");
   return (
-    <main className="min-h-screen bg-[#f7f7f7] p-8">
+    <main className="il-page-enter min-h-screen bg-[#f7f7f7] p-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-8 text-3xl font-bold text-[#1a2333]">
           Add New Internship Post
         </h1>
 
-        <div className="rounded-2xl bg-white p-8 shadow-sm">
+        <div className="rounded-2xl bg-white p-8 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             
             {/* Job Title */}
@@ -23,7 +23,7 @@ export default function AddInternshipPostPage() {
                 placeholder="Enter job title"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
               />
             </div>
 
@@ -32,7 +32,7 @@ export default function AddInternshipPostPage() {
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Company
               </label>
-              <select className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]">
+              <select className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]">
                 <option>Select company</option>
                 <option>TechNova Solutions</option>
                 <option>InnovateX Labs</option>
@@ -49,7 +49,7 @@ export default function AddInternshipPostPage() {
               <input
                 type="text"
                 placeholder="Enter location"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
               />
             </div>
 
@@ -58,7 +58,7 @@ export default function AddInternshipPostPage() {
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Internship Type
               </label>
-              <select className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]">
+              <select className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]">
                 <option>Select type</option>
                 <option>Full Time</option>
                 <option>Part Time</option>
@@ -75,7 +75,7 @@ export default function AddInternshipPostPage() {
               <input
                 type="text"
                 placeholder="Example: 6 Months"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
               />
             </div>
 
@@ -86,7 +86,7 @@ export default function AddInternshipPostPage() {
               </label>
               <input
                 type="date"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
               />
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function AddInternshipPostPage() {
             <textarea
               rows={5}
               placeholder="Enter internship description..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
             />
           </div>
 
@@ -111,7 +111,7 @@ export default function AddInternshipPostPage() {
             <textarea
               rows={4}
               placeholder="Enter internship requirements..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#ff7a00]"
             />
           </div>
 
@@ -120,7 +120,7 @@ export default function AddInternshipPostPage() {
             <button
   type="button"
   onClick={() => window.location.href = "/admin/internship-posts"}
-  className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-100"
+  className="rounded-xl border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-[#f6f8fc]"
 >
   Cancel
 </button>
@@ -129,7 +129,7 @@ export default function AddInternshipPostPage() {
               onClick={() => {
                 window.location.href = "/admin/internship-posts";
               }}
-              className="rounded-lg bg-[#ff7a00] px-6 py-3 font-semibold text-white hover:bg-[#e96d00]"
+              className="rounded-xl bg-[#ff7a00] px-6 py-3 font-semibold text-white hover:bg-[#e96d00]"
             >
               Publish Post
             </button>
