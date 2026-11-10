@@ -228,15 +228,29 @@ export function SiteNavbar() {
           </nav>
         )}
       </header>
-      <div className="border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
-        <nav aria-label="Breadcrumb" className="mx-auto flex min-h-9 max-w-[1500px] items-center gap-2 overflow-hidden px-5 py-1 text-xs font-medium sm:px-7 lg:px-10">
-          <Link href="/home" aria-label="Home" className={"inline-flex shrink-0 items-center gap-1.5 " + (pathname === "/home" ? "font-bold text-[#b45309]" : "text-slate-500 hover:text-[#b45309]")}>
+      {/* Reusable glass breadcrumb: blends with the navy hero, stays readable across every page. */}
+      <div className="relative isolate overflow-hidden border-b border-white/15 bg-[linear-gradient(110deg,rgba(9,24,54,0.94)_0%,rgba(25,51,95,0.82)_52%,rgba(12,31,65,0.94)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_9px_25px_-19px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-8 left-[14%] h-16 w-56 rounded-full bg-[#f5821f]/10 blur-2xl" />
+        <nav aria-label="Breadcrumb" className="relative mx-auto flex min-h-11 max-w-[1500px] items-center gap-2.5 overflow-hidden px-5 py-1.5 text-xs font-medium text-white sm:px-7 lg:px-10">
+          <Link
+            href="/home"
+            aria-label="Home"
+            aria-current={pathname === "/home" ? "page" : undefined}
+            className={
+              "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 " +
+              (pathname === "/home"
+                ? "border-[#f5821f]/50 bg-[#f5821f]/20 font-bold text-orange-100 shadow-[0_0_15px_-7px_rgba(245,130,31,0.9)]"
+                : "border-white/15 bg-white/10 text-white/85 hover:border-orange-300/45 hover:bg-white/20 hover:text-white")
+            }
+          >
             <Home className="h-3.5 w-3.5" aria-hidden="true" /> Home
           </Link>
           {pathname !== "/home" && (
             <>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-              <span aria-current="page" className="truncate font-bold text-[#0b1b3e]">{currentPage}</span>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/50" aria-hidden="true" />
+              <span aria-current="page" className="min-w-0 truncate rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-bold text-orange-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-lg">
+                {currentPage}
+              </span>
             </>
           )}
         </nav>
