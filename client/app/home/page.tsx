@@ -4,12 +4,5 @@ import { RecommendedJobs } from "@/components/recommended-jobs";
 import { Footer } from "@/components/footer";
 
 export default function HomePage() {
-  return (
-    <main className="flex min-h-screen flex-col bg-white">
-      <HomeNavbar />
-      <JobSearchHero />
-      <RecommendedJobs />
-      <Footer />
-    </main>
-  );
+  return <main className="flex min-h-screen flex-col bg-[#f6f8fc]"><HomeNavbar /><JobSearchHero /><RecommendedJobs /><Footer /></main>;
 }
