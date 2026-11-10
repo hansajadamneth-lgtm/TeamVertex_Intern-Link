@@ -32,7 +32,7 @@ const RECOMMENDED_JOBS = [
 
 export function RecommendedJobs() {
   return (
-    <section id="recommendations" className="mx-auto w-full max-w-3xl px-6 py-7 lg:px-8">
+    <section id="recommendations" className="relative mx-auto -mt-8 w-full max-w-6xl rounded-3xl border border-slate-100 bg-white px-6 py-10 shadow-[0_18px_60px_-25px_rgba(11,27,62,0.25)] lg:px-10">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Image
@@ -42,16 +42,16 @@ export function RecommendedJobs() {
             height={36}
             className="h-10 w-10 object-contain"
           />
-          <h2 className="text-base font-semibold text-gray-900">
+          <h2 className="text-2xl font-semibold text-gray-900">
             Recommended for you
           </h2>
         </div>
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-il-orange">
+        <p className="text-xs font-semibold uppercase tracking-wide text-il-orange">
           Welcome to InternLink
         </p>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {RECOMMENDED_JOBS.map((job, i) => (
           <Link key={i} href="/job-details" className="block">
             <JobCard {...job} />
@@ -60,13 +60,13 @@ export function RecommendedJobs() {
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <Link href="/" className="w-full sm:flex-1">
-          <Button variant="outline" size="default" className="w-full rounded-none bg-gray-100 text-xs">
+        <Link href="/cv-builder" className="w-full sm:flex-1">
+          <Button variant="outline" size="default" className="w-full rounded-xl bg-gray-100 text-xs">
             Build my cv
           </Button>
         </Link>
         <Link href="/cover-letter" className="w-full sm:flex-1">
-          <Button size="default" className="w-full rounded-none text-xs">
+          <Button size="default" className="w-full rounded-xl text-xs">
             Generate Cover letter
           </Button>
         </Link>
