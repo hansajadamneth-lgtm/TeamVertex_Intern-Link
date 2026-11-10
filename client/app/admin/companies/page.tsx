@@ -1,6 +1,6 @@
 export default function ManageCompaniesPage() {
   return (
-    <main className="min-h-screen bg-[#f5f5f5] p-6">
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-6">
 
       {/* Top Header */}
       <div className="mb-6 flex items-center justify-between">
@@ -18,7 +18,7 @@ export default function ManageCompaniesPage() {
         <div className="flex items-center gap-6">
 
           {/* Search */}
-          <div className="flex h-10 w-64 items-center rounded-full bg-white px-4 shadow-sm">
+          <div className="flex h-10 w-64 items-center rounded-full bg-white px-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <span className="mr-2 text-gray-500">⌕</span>
             <span className="text-sm text-gray-400">
               Search
@@ -51,7 +51,7 @@ export default function ManageCompaniesPage() {
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 
         {/* Total Companies */}
-        <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <p className="text-sm text-gray-500">
             Total Companies
           </p>
@@ -68,7 +68,7 @@ export default function ManageCompaniesPage() {
         </div>
 
         {/* Verified Companies */}
-        <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <p className="text-sm text-gray-500">
             Verified Companies
           </p>
@@ -85,7 +85,7 @@ export default function ManageCompaniesPage() {
         </div>
 
         {/* Pending Approval */}
-        <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <p className="text-sm text-gray-500">
             Pending Approval
           </p>
@@ -102,7 +102,7 @@ export default function ManageCompaniesPage() {
         </div>
 
         {/* Suspended */}
-        <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <p className="text-sm text-gray-500">
             Pending Approval
           </p>
@@ -121,7 +121,7 @@ export default function ManageCompaniesPage() {
       </div>
 
       {/* Search + Add Company */}
-      <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] md:flex-row md:items-center md:justify-between">
 
         <div className="flex h-11 flex-1 items-center rounded-full border border-gray-200 px-4">
           <span className="mr-3 text-gray-400">
@@ -133,7 +133,7 @@ export default function ManageCompaniesPage() {
           </span>
         </div>
               {/* Companies Table */}
-      <div className="mt-6 overflow-hidden rounded-xl bg-white shadow-sm">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
 
         {/* Table Header */}
         <div className="grid grid-cols-6 border-b border-gray-200 px-6 py-4 text-sm font-semibold text-gray-700">
@@ -178,11 +178,11 @@ export default function ManageCompaniesPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               👁
             </button>
 
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               ⋮
             </button>
           </div>
@@ -220,11 +220,11 @@ export default function ManageCompaniesPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               👁
             </button>
 
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               ⋮
             </button>
           </div>
@@ -262,11 +262,11 @@ export default function ManageCompaniesPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               👁
             </button>
 
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               ⋮
             </button>
           </div>
@@ -304,11 +304,11 @@ export default function ManageCompaniesPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               👁
             </button>
 
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               ⋮
             </button>
           </div>
@@ -346,11 +346,11 @@ export default function ManageCompaniesPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               👁
             </button>
 
-            <button className="rounded-lg border px-3 py-1 hover:bg-gray-100">
+            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
               ⋮
             </button>
           </div>
@@ -359,7 +359,7 @@ export default function ManageCompaniesPage() {
 
       </div>
 
-        <button className="rounded-lg bg-[#ff7a00] px-6 py-3 text-sm font-semibold text-white hover:bg-[#e96d00]">
+        <button className="rounded-xl bg-[#ff7a00] px-6 py-3 text-sm font-semibold text-white hover:bg-[#e96d00]">
           + Add Companies
         </button>
 
