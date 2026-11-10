@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
   { label: "Home", href: "/home" },
   { label: "Find jobs", href: "/job-details" },
-  { label: "CV builder", href: "/" },
+  { label: "CV builder", href: "/cv-builder" },
   { label: "Recommendations", href: "/recommendations" },
   { label: "Applications", href: "/applications" },
 ];
