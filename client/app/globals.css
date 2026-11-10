@@ -152,3 +152,30 @@
   html { scroll-behavior: auto; }
   .il-enter, .il-scroll-reveal { animation: none !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* InternLink design system: retain the existing Lora font and navy/orange colours. */
+:root { --il-ink: #0b1b3e; --il-accent: #f5821f; --il-muted: #64748b; --il-canvas: #f6f8fc; }
+.il-app { font-family: var(--font-lora), serif; color: #17233b; }
+.il-app main { overflow-wrap: break-word; }
+.il-app main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select) {
+  min-height: 44px;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+}
+.il-app main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select):focus-visible {
+  outline: 2px solid rgb(245 130 31 / 35%);
+  outline-offset: 1px;
+}
+.il-app main h1 { letter-spacing: -0.025em; line-height: 1.2; }
+.il-app main :is(article, .il-surface) { transition: box-shadow 240ms ease, transform 240ms ease, border-color 240ms ease; }
+.il-app main article:hover { box-shadow: 0 14px 38px -22px rgb(11 27 62 / 22%); }
+.il-app :is(a, button) { -webkit-tap-highlight-color: transparent; }
+.il-app :is(a, button):focus-visible { outline: 2px solid var(--il-accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .il-app .il-page-enter { animation: il-fade-up 500ms cubic-bezier(0.22,1,0.36,1) both; }
+  .il-app main section { scroll-margin-top: 5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-app * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
