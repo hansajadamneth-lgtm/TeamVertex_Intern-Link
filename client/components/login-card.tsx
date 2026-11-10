@@ -186,14 +186,14 @@ export function LoginCard() {
 
           {/* Error message */}
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
           {/* Success message */}
           {success && (
-            <div className="rounded-md bg-green-50 p-3 text-sm text-green-600">
+            <div className="rounded-xl bg-green-50 p-3 text-sm text-green-600">
               {success}
             </div>
           )}
