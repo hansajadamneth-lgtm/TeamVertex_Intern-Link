@@ -7,9 +7,9 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen min-w-0 flex-col bg-[#f6f8fc] lg:flex-row">
       {/* Sidebar */}
-      <aside className="flex w-64 flex-col bg-[#0d172b] text-white">
+      <aside className="flex w-full shrink-0 flex-col bg-[#0b1b3e] text-white lg:sticky lg:top-0 lg:h-screen lg:w-64">
         {/* Logo */}
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
           <Image
@@ -29,11 +29,11 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6">
-          <div className="space-y-2">
+        <nav className="flex-1 overflow-x-auto px-3 py-3 lg:py-6">
+          <div className="flex gap-2 lg:block lg:space-y-2">
             <Link
               href="/admin/dashboard"
-             className="flex items-center gap-3 rounded-lg border border-orange-500 bg-orange-500/10 px-4 py-3 text-sm text-orange-500"
+             className="flex items-center gap-3 rounded-xl border border-orange-500 bg-orange-500/10 px-4 py-3 text-sm text-orange-500"
             >
               <span>▦</span>
               Dashboard
@@ -83,7 +83,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Page content */}
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1">{children}</main>
     </div>
   );
 }
