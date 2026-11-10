@@ -64,10 +64,10 @@ export default function CvBuilder() {
  };
  const field = (label: string, value: string, onChange: (s: string) => void, multiline = false) =>
    <label className="block space-y-1.5"><span className="text-xs font-semibold text-slate-600">{label}</span>
-     {multiline ? <textarea rows={3} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-lg border border-slate-200 p-3 text-sm" /> :
-       <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-lg border border-slate-200 p-3 text-sm" />}
+     {multiline ? <textarea rows={3} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-slate-200 p-3 text-sm" /> :
+       <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-slate-200 p-3 text-sm" />}
    </label>;
- return <main className="min-h-screen bg-[#f4f7fa] text-[#17233b]">
+ return <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]">
    <header className="bg-[#0b142b] px-6 py-4 text-white"><div className="mx-auto flex max-w-6xl items-center justify-between">
      <Link href="/home" className="flex items-center gap-2 text-sm"><ArrowLeft size={16}/> InternLink</Link>
      <nav className="flex gap-4 text-sm"><Link href="/profile">Profile</Link><Link href="/recommendations">Matches</Link></nav>
@@ -75,23 +75,23 @@ export default function CvBuilder() {
    <div className="mx-auto max-w-6xl px-5 py-10">
      <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
        <div><h1 className="text-3xl font-bold">CV Builder</h1><p className="mt-2 text-sm text-slate-500">Save multiple CV versions and choose one for internship matching.</p></div>
-       <div className="flex gap-2"><button onClick={newVersion} className="rounded-lg border bg-white px-4 py-2 text-sm"><Plus size={15} className="mr-1 inline"/>New version</button>
-         <button onClick={duplicate} className="rounded-lg border bg-white px-4 py-2 text-sm">Duplicate</button></div>
+       <div className="flex gap-2"><button onClick={newVersion} className="rounded-xl border bg-white px-4 py-2 text-sm"><Plus size={15} className="mr-1 inline"/>New version</button>
+         <button onClick={duplicate} className="rounded-xl border bg-white px-4 py-2 text-sm">Duplicate</button></div>
      </div>
      {loading && <p role="status">Loading CV versions...</p>}
-     {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
-     {notice && <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">{notice}</p>}
+     {error && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
+     {notice && <p role="status" className="mb-4 rounded-xl bg-green-50 p-3 text-sm text-green-700">{notice}</p>}
      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
        <div className="space-y-5 print:hidden">
-         {cvs.length > 0 && <div className="rounded-xl bg-white p-4 shadow-sm">
+         {cvs.length > 0 && <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
            <label className="text-xs font-semibold text-slate-500">Saved versions</label>
            <select value={cv._id || ""} onChange={(e) => {const selected = cvs.find((x) => x._id === e.target.value); if (selected) select(selected);}}
-             className="mt-2 w-full rounded-lg border p-3 text-sm">
+             className="mt-2 w-full rounded-xl border p-3 text-sm">
              {!cv._id && <option value="">Unsaved version</option>}
              {cvs.map((version) => <option key={version._id} value={version._id}>{version.name}{version.isPrimary ? " (primary)" : ""}</option>)}
            </select>
          </div>}
-         <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm">
+         <section className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
            <h2 className="text-lg font-semibold">About you</h2>
            {field("CV version name", cv.name, (v) => update("name", v))}
            {field("Professional headline", cv.headline, (v) => update("headline", v))}
@@ -100,13 +100,13 @@ export default function CvBuilder() {
            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={cv.isPrimary} onChange={(e) => update("isPrimary", e.target.checked)} />
              Use as my primary CV for recommendations</label>
          </section>
-         {sections.map((section) => <section key={section.key} className="rounded-xl bg-white p-5 shadow-sm">
+         {sections.map((section) => <section key={section.key} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
            <div className="mb-4 flex items-center justify-between">
              <h2 className="text-lg font-semibold">{section.title}</h2>
-             <button onClick={() => addEntry(section.key)} className="rounded-lg border px-3 py-2 text-xs"><Plus size={13} className="mr-1 inline"/>Add</button>
+             <button onClick={() => addEntry(section.key)} className="rounded-xl border px-3 py-2 text-xs"><Plus size={13} className="mr-1 inline"/>Add</button>
            </div>
            {cv[section.key].length === 0 && <p className="text-sm text-slate-400">No entries yet.</p>}
-           {cv[section.key].map((entry, index) => <div key={index} className="mb-4 space-y-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
+           {cv[section.key].map((entry, index) => <div key={index} className="mb-4 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
              {field(section.hint, entry.title, (v) => updateEntry(section.key, index, "title", v))}
              {field("Institution / Company", entry.organization, (v) => updateEntry(section.key, index, "organization", v))}
              {field("Dates", entry.period, (v) => updateEntry(section.key, index, "period", v))}
@@ -116,12 +116,12 @@ export default function CvBuilder() {
            </div>)}
          </section>)}
          <div className="flex flex-wrap gap-2">
-           <button disabled={busy} onClick={save} className="rounded-lg bg-[#ff7417] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"><Save size={15} className="mr-2 inline"/>{busy ? "Saving..." : "Save CV"}</button>
-           {cv._id && <button disabled={busy} onClick={remove} className="rounded-lg border border-red-200 px-4 py-3 text-sm text-red-600">Delete version</button>}
-           <button onClick={() => window.print()} className="rounded-lg border bg-white px-4 py-3 text-sm"><Download size={15} className="mr-2 inline"/>Print / Save PDF</button>
+           <button disabled={busy} onClick={save} className="rounded-xl bg-[#ff7417] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"><Save size={15} className="mr-2 inline"/>{busy ? "Saving..." : "Save CV"}</button>
+           {cv._id && <button disabled={busy} onClick={remove} className="rounded-xl border border-red-200 px-4 py-3 text-sm text-red-600">Delete version</button>}
+           <button onClick={() => window.print()} className="rounded-xl border bg-white px-4 py-3 text-sm"><Download size={15} className="mr-2 inline"/>Print / Save PDF</button>
          </div>
        </div>
-       <section className="self-start rounded-xl bg-white p-7 shadow-sm print:col-span-2 print:shadow-none">
+       <section className="self-start rounded-2xl border border-slate-100 bg-white p-7 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] print:col-span-2 print:shadow-none">
          <p className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase text-[#ff7417] print:hidden"><Sparkles size={15}/>Live CV preview</p>
          <h2 className="text-2xl font-bold">{cv.headline || "Your professional headline"}</h2>
          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{cv.summary || "Write a short profile summary to get started."}</p>
