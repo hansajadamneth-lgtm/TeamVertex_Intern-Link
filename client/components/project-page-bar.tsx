@@ -40,7 +40,7 @@ export function ProjectPageBar() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-4 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-md bg-[#0b1b41] text-white shadow-md transition-colors hover:bg-[#162b5b]"
+        className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-[#0b1b41] text-white shadow-xl transition-all duration-200 hover:-translate-y-1 hover:bg-[#162b5b] print:hidden"
         aria-label="Open project navigation"
         aria-expanded={open}
       >
@@ -50,7 +50,7 @@ export function ProjectPageBar() {
       {open && (
         <aside
           aria-label="Project navigation"
-          className="fixed right-0 top-0 z-[60] h-screen w-72 bg-[#0b1b41] text-white shadow-xl"
+          className="fixed right-0 top-0 z-[60] h-screen w-[min(88vw,320px)] border-l border-white/10 bg-[#0b1b41] text-white shadow-2xl print:hidden"
         >
           <div className="flex h-16 items-center justify-end border-b border-white/10 px-5">
             <button
@@ -72,7 +72,7 @@ export function ProjectPageBar() {
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white"
               >
                 {label}
               </Link>
