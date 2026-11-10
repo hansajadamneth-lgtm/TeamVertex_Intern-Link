@@ -144,8 +144,8 @@ export function SiteNavbar() {
       <header className="border-b border-white/10 bg-[#0b1b3e]/95 shadow-[0_5px_25px_-17px_rgba(0,0,0,.65)] backdrop-blur-xl">
         <div className="mx-auto flex min-h-[76px] w-full max-w-[1500px] items-center gap-5 px-4 sm:px-6 lg:px-9">
           <Link href="/home" aria-label="InternLink Home" className="flex shrink-0 items-center gap-2.5 rounded-xl p-1 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white p-1 shadow-sm">
-              <Image src="/internlink-logo.png" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white p-1 shadow-[0_8px_18px_-8px_rgba(0,0,0,.4)] ring-2 ring-white/10">
+              <Image src="/internlink-logo.png" alt="" width={38} height={38} className="h-full w-full rounded-full object-contain" />
             </span>
             <span className="hidden text-lg font-bold tracking-tight sm:inline">Intern<span className="text-[#f5821f]">Link</span></span>
           </Link>
