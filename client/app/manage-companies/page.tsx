@@ -53,7 +53,7 @@ export default function ManageCompaniesPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-8">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900">
           Manage Companies
@@ -63,7 +63,7 @@ export default function ManageCompaniesPage() {
           Manage registered companies and their accounts.
         </p>
 
-        <div className="mt-8 overflow-hidden rounded-lg bg-white shadow">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
