@@ -179,3 +179,33 @@
 @media (prefers-reduced-motion: reduce) {
   .il-app * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* App-wide location awareness: one shared header, instead of conflicting page headers. */
+.il-page-content > main > header,
+.il-page-content > main > div > header:first-child,
+.il-page-content > main > header:first-child,
+.il-page-content > main > div > div > header:first-child {
+  display: none !important;
+}
+.il-page-content > main > div > aside:first-child {
+  /* Admin layout keeps its specialized sidebar as secondary navigation. */
+}
+
+/* Orange illuminated glass active state for every route. */
+.il-nav-active {
+  border: 1px solid rgb(255 174 93 / 55%);
+  background: linear-gradient(145deg, rgb(255 255 255 / 24%), rgb(245 130 31 / 29%));
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 8%) inset, 0 7px 22px -8px rgb(245 130 31 / 62%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-shadow: 0 1px 5px rgb(0 0 0 / 20%);
+}
+.il-nav-active:hover {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 12%) inset, 0 9px 27px -7px rgb(245 130 31 / 80%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-site-navigation * { transition-duration: 0.01ms !important; }
+}
+/* Keep site navigation available as a clear and consistent way home. */
+.il-site-navigation { isolation: isolate; }
