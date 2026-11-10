@@ -1,5 +1,7 @@
 const Application = require("../models/Application");
 const Job = require("../models/Job");
+const Company = require("../models/Company");
+const { scoreJob } = require("../utils/matchEngine");
 
 /**
  * @desc    Submit a new internship application
@@ -35,6 +37,11 @@ const createApplication = async (req, res, next) => {
       });
     }
 
+    const verifiedCompany = job.company && await Company.findOne({ _id: job.company, status: "Verified" });
+    if (!verifiedCompany || (job.deadline && job.deadline < new Date())) {
+      return res.status(400).json({ success: false, message: "This verified internship is no longer accepting applications." });
+    }
+
     // 3. Prevent duplicate applications
     const existingApp = await Application.findOne({
       student: req.user._id,
@@ -48,17 +55,8 @@ const createApplication = async (req, res, next) => {
       });
     }
 
-    // 4. Calculate sensible AI match fit score based on skills or sensible default
-    let fitScore = 80;
-    if (req.user.skills && req.user.skills.length > 0 && job.skills && job.skills.length > 0) {
-      const studentSkills = req.user.skills.map((s) => s.toLowerCase().trim());
-      const jobSkills = job.skills.map((s) => s.toLowerCase().trim());
-      const matches = studentSkills.filter((s) => jobSkills.includes(s));
-      const ratio = matches.length / jobSkills.length;
-      fitScore = Math.min(98, Math.max(70, Math.round(70 + ratio * 28)));
-    } else {
-      fitScore = Math.floor(Math.random() * 15) + 80; // 80 - 94%
-    }
+    // 4. Deterministic, explainable matching; never use random scores.
+    const fitScore = scoreJob({ skills: req.user.skills || [] }, job).score;
 
     // 5. Create application record
     const application = await Application.create({

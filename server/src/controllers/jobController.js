@@ -1,4 +1,5 @@
 const Job = require("../models/Job");
+const Company = require("../models/Company");
 
 /**
  * @desc    Get all active internship postings (with search, filtering, and pagination)
@@ -19,7 +20,8 @@ const getJobs = async (req, res, next) => {
       limit = 10,
     } = req.query;
 
-    const query = {};
+    const verifiedCompanyIds = await Company.distinct("_id", { status: "Verified" });
+    const query = { company: { $in: verifiedCompanyIds } };
 
     // 1. Status Filter (default to "Active" for public view unless explicit status requested)
     if (status) {
@@ -114,6 +116,9 @@ const getJobById = async (req, res, next) => {
       });
     }
 
+    if (job.status !== "Active" || !job.company || job.company.status !== "Verified") {
+      return res.status(404).json({ success: false, message: "Internship not available." });
+    }
     return res.status(200).json({
       success: true,
       data: job,
@@ -168,11 +173,19 @@ const createJob = async (req, res, next) => {
       parsedSkills = skills.split(",").map((s) => s.trim()).filter(Boolean);
     }
 
+    // Employers must have a verified company before publishing any internship.
+    const ownedCompany = req.user.role === "admin"
+      ? (company ? await Company.findById(company) : null)
+      : await Company.findOne({ owner: req.user._id });
+    if (!ownedCompany || ownedCompany.status !== "Verified") {
+      return res.status(403).json({ success: false, message: "A verified employer company is required before posting." });
+    }
+
     // 3. Security: Derive postedBy strictly from authenticated req.user
     const newJobData = {
       title: resolvedTitle,
       companyName: resolvedCompanyName,
-      company: company || (req.user && req.user.company) || null,
+      company: ownedCompany._id,
       category: category || "IT",
       location: resolvedLocation,
       type: type || "Full Time",
