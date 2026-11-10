@@ -50,7 +50,7 @@ Hansaja Damneth`;
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f7fa] text-[#17233b]">
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]">
       <header className="bg-[#0b142b] px-4 py-3 sm:px-8">
         <nav className="mx-auto flex max-w-[1120px] items-center justify-between">
           <Link href="/home" aria-label="InternLink home">
@@ -58,21 +58,21 @@ Hansaja Damneth`;
               <Image src="/internlink-logo.png" alt="InternLink" width={40} height={40} className="h-full w-full object-contain" />
             </span>
           </Link>
-          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-1 text-[9px] text-white sm:gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1 text-xs text-white sm:gap-3">
             {navItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-md px-2 py-2 transition-colors sm:px-3 ${
+                className={`flex items-center gap-1.5 rounded-xl px-2 py-2 transition-all duration-200 sm:px-3 ${
                   item.active ? "bg-[#ff7417] font-semibold" : "text-slate-300 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {item.label}
-                {item.count && <span className="rounded-full bg-[#667085] px-1.5 py-0.5 text-[8px]">{item.count}</span>}
+                {item.count && <span className="rounded-full bg-[#667085] px-1.5 py-0.5 text-xs">{item.count}</span>}
               </Link>
             ))}
           </div>
-          <Link href="/login" className="hidden text-[10px] text-slate-300 hover:text-white sm:block">Sign out</Link>
+          <Link href="/login" className="hidden text-xs text-slate-300 hover:text-white sm:block">Sign out</Link>
         </nav>
       </header>
 
@@ -80,18 +80,18 @@ Hansaja Damneth`;
         <div className="mb-7">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-semibold text-[#17233b]">AI Cover Letter Generator</h1>
-            <span className="rounded bg-[#fff0e5] px-2 py-1 text-[8px] font-semibold uppercase tracking-wide text-[#e86b18]">Engine v1.0</span>
+            <span className="rounded bg-[#fff0e5] px-2 py-1 text-xs font-semibold uppercase tracking-wide text-[#e86b18]">Engine v1.0</span>
           </div>
-          <p className="mt-1 text-[11px] text-[#7b8799]">AI feature module to instantly create structured professional pitch documents.</p>
+          <p className="mt-1 text-sm text-[#7b8799]">AI feature module to instantly create structured professional pitch documents.</p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-          <section className="overflow-hidden rounded-lg border border-[#dce3eb] bg-white shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-[#dce3eb] bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <div className="flex items-center justify-between border-b border-[#e7ecf1] px-4 py-3">
-              <h2 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-[#17233b]">
+              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#17233b]">
                 <Sparkles className="h-3 w-3 text-[#ff7417]" /> Target specifications
               </h2>
-              <span className="rounded-full bg-[#f1f4f7] px-2 py-1 text-[8px] text-[#8994a4]">MS-INPUT</span>
+              <span className="rounded-full bg-[#f1f4f7] px-2 py-1 text-xs text-[#8994a4]">MS-INPUT</span>
             </div>
             <div className="space-y-4 p-4">
               <Field label="Target job title" value={form.jobTitle} placeholder="e.g. Associate Software Engineer" onChange={(value) => updateField("jobTitle", value)} />
@@ -99,38 +99,38 @@ Hansaja Damneth`;
               <TextArea label="Job ad / core requirements" value={form.requirements} placeholder="Paste vacancy requirements or required technologies listed on the posting..." onChange={(value) => updateField("requirements", value)} />
               <TextArea label="Your core skills & background" value={form.background} placeholder="e.g. React, Tailwind CSS, Python, Git. Mention active projects or university modules..." onChange={(value) => updateField("background", value)} />
               <Field label="Letter tone profile" value={form.tone} onChange={(value) => updateField("tone", value)} />
-              <button type="button" onClick={generateLetter} className="flex w-full items-center justify-center gap-2 rounded-md bg-[#ff7417] py-3 text-[10px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#e4640e]">
+              <button type="button" onClick={generateLetter} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff7417] py-3 text-xs font-bold uppercase tracking-wide text-white transition-all duration-200 hover:bg-[#e4640e]">
                 <Sparkles className="h-3 w-3" /> Generate custom cover letter
               </button>
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-lg border border-[#dce3eb] bg-white shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-[#dce3eb] bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <div className="flex items-center justify-between border-b border-[#e7ecf1] px-4 py-3">
-              <h2 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-[#17233b]">
+              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#17233b]">
                 <span className="h-2 w-2 rounded-full bg-[#18b979]" /> Document preview canvas
               </h2>
               <div className="flex gap-2">
-                <button type="button" onClick={copyLetter} className="flex items-center gap-1 rounded border border-[#e2e7ed] px-2 py-1.5 text-[9px] text-[#536174] hover:bg-[#f7f9fb]">
+                <button type="button" onClick={copyLetter} className="flex items-center gap-1 rounded border border-[#e2e7ed] px-2 py-1.5 text-xs text-[#536174] hover:bg-[#f7f9fb]">
                   {copied ? <Check className="h-3 w-3 text-[#18a96d]" /> : <Copy className="h-3 w-3" />} {copied ? "Copied" : "Copy content"}
                 </button>
-                <button type="button" onClick={() => window.print()} className="rounded bg-[#356be8] px-3 py-1.5 text-[9px] font-semibold text-white hover:bg-[#2858cc]">Export PDF</button>
+                <button type="button" onClick={() => window.print()} className="rounded bg-[#356be8] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2858cc]">Export PDF</button>
               </div>
             </div>
             <div className="min-h-[440px] bg-[#f7f9fb] p-6 sm:p-10">
-              <article className="mx-auto min-h-[360px] max-w-[560px] rounded-md border border-[#edf0f3] bg-white p-7 shadow-sm sm:p-10">
+              <article className="mx-auto min-h-[360px] max-w-[560px] rounded-xl border border-[#edf0f3] bg-white p-7 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] sm:p-10">
                 {!generated ? (
                   <div className="flex h-[290px] flex-col items-center justify-center text-center">
                     <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#fff2e8] text-[#ff7417]"><FileText className="h-4 w-4" /></span>
-                    <h3 className="text-[13px] font-semibold text-[#17233b]">AI Copywriting Document Canvas</h3>
-                    <p className="mt-2 max-w-[260px] text-[10px] leading-4 text-[#8490a2]">Specify job insights inside the configuration metrics panel to trigger the generative copywriting pipeline.</p>
+                    <h3 className="text-sm font-semibold text-[#17233b]">AI Copywriting Document Canvas</h3>
+                    <p className="mt-2 max-w-[260px] text-xs leading-4 text-[#8490a2]">Specify job insights inside the configuration metrics panel to trigger the generative copywriting pipeline.</p>
                   </div>
                 ) : (
-                  <div className="whitespace-pre-line text-[11px] leading-5 text-[#354052]">{coverLetter}</div>
+                  <div className="whitespace-pre-line text-sm leading-5 text-[#354052]">{coverLetter}</div>
                 )}
               </article>
             </div>
-            <div className="border-t border-[#e7ecf1] py-3 text-center text-[9px] text-[#8490a2]">InternLink Recruitment Framework · Secure Processing Environment</div>
+            <div className="border-t border-[#e7ecf1] py-3 text-center text-xs text-[#8490a2]">InternLink Recruitment Framework · Secure Processing Environment</div>
           </section>
         </div>
       </section>
@@ -141,8 +141,8 @@ Hansaja Damneth`;
 function Field({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[9px] font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
-      <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-9 w-full rounded-md border border-[#dfe6ed] bg-[#f7f9fb] px-3 text-[10px] text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
+      <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-9 w-full rounded-xl border border-[#dfe6ed] bg-[#f7f9fb] px-3 text-xs text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
     </label>
   );
 }
@@ -150,8 +150,8 @@ function Field({ label, value, placeholder, onChange }: { label: string; value: 
 function TextArea({ label, value, placeholder, onChange }: { label: string; value: string; placeholder: string; onChange: (value: string) => void }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[9px] font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
-      <textarea value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-14 w-full resize-none rounded-md border border-[#dfe6ed] bg-[#f7f9fb] px-3 py-2 text-[10px] leading-4 text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
+      <textarea value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-14 w-full resize-none rounded-xl border border-[#dfe6ed] bg-[#f7f9fb] px-3 py-2 text-xs leading-4 text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
     </label>
   );
 }
