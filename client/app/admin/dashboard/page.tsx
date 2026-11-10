@@ -79,7 +79,7 @@ const recentUsers = [
 
 export default function AdminDashboardPage() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="il-page-enter min-h-screen bg-[#f6f8fc]">
       {/* Top bar */}
      {/* Top bar */}
 <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
             <Link
               key={stat.title}
               href={stat.href}
-              className="rounded-xl bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]"
             >
               <p className="text-sm text-gray-500">
                 {stat.title}
@@ -178,7 +178,7 @@ export default function AdminDashboardPage() {
         {/* Main dashboard sections */}
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           {/* Recent Jobs */}
-          <div id="reports" className="rounded-xl bg-white p-5 shadow-sm">
+          <div id="reports" className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-semibold text-gray-800">
                 Recent Job Posts
@@ -231,7 +231,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* User Growth */}
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-800">
                 User Growth
@@ -267,7 +267,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Users */}
-        <div id="users" className="mt-6 rounded-xl bg-white p-5 shadow-sm">
+        <div id="users" className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">
               Recent Users
