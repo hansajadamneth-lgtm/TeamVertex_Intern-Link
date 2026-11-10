@@ -43,19 +43,19 @@ export default function StudentsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6 lg:p-8">
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-6 lg:p-8">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">Manage Students</h1>
           <p className="mt-1 text-sm text-gray-500">View and manage registered student accounts.</p>
         </div>
-        <button type="button" className="rounded-lg bg-[#ff7a00] px-5 py-3 text-sm font-semibold text-white">
+        <button type="button" className="rounded-xl bg-[#ff7a00] px-5 py-3 text-sm font-semibold text-white">
           + Add Student
         </button>
       </header>
 
-      <section className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-        <label className="flex max-w-xl items-center gap-2 rounded-lg border border-gray-200 px-4 py-3">
+      <section className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
+        <label className="flex max-w-xl items-center gap-2 rounded-xl border border-gray-200 px-4 py-3">
           <Search className="h-4 w-4 text-gray-400" />
           <input
             value={query}
