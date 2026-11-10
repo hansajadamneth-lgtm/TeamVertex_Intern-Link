@@ -1,0 +1,22 @@
+# InternLink Express backend on Render.
+# Connect this repository using Render Blueprints and select the feature branch.
+# MongoDB is provided by Atlas (not provisioned by this Blueprint).
+services:
+  - type: web
+    name: internlink-api
+    runtime: node
+    branch: feature/internlink-proposal-completion
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run start --workspace=server
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false
