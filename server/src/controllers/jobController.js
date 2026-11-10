@@ -23,14 +23,10 @@ const getJobs = async (req, res, next) => {
     const verifiedCompanyIds = await Company.distinct("_id", { status: "Verified" });
     const query = { company: { $in: verifiedCompanyIds } };
 
-    // 1. Status Filter (default to "Active" for public view unless explicit status requested)
-    if (status) {
-      if (status !== "all") {
-        query.status = status;
-      }
-    } else {
-      query.status = "Active";
-    }
+    // Public catalog is restricted to active, unexpired verified-company listings.
+    // Never honor client-supplied status=all on unauthenticated endpoints.
+    query.status = "Active";
+    query.$or = [{ deadline: null }, { deadline: { $gte: new Date() } }];
 
     // 2. Category Filter
     if (category && category !== "All") {
