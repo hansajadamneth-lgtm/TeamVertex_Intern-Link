@@ -372,7 +372,7 @@ export function RegisterCard() {
           <Button
             type="button"
             variant="outline"
-            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] hover:bg-gray-50"
           >
             <GoogleIcon />
             <span>Sign up with Google</span>
