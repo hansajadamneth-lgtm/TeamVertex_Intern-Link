@@ -47,7 +47,7 @@ export default function InternshipPostsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#f5f5f5]">
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc]">
       {/* Top Header */}
       <header className="flex h-16 items-center justify-between border-b bg-white px-6">
         <div className="flex items-center gap-4">
@@ -82,7 +82,7 @@ export default function InternshipPostsPage() {
       <div className="p-6 lg:p-8">
         {/* Statistics */}
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <p className="text-sm text-gray-500">Total Posts</p>
 
             <div className="mt-2 flex items-end justify-between">
@@ -94,7 +94,7 @@ export default function InternshipPostsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <p className="text-sm text-gray-500">Active Posts</p>
 
             <div className="mt-2 flex items-end justify-between">
@@ -106,7 +106,7 @@ export default function InternshipPostsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <p className="text-sm text-gray-500">Pending Approval</p>
 
             <div className="mt-2 flex items-end justify-between">
@@ -118,7 +118,7 @@ export default function InternshipPostsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
             <p className="text-sm text-gray-500">Expired / Closed</p>
 
             <div className="mt-2 flex items-end justify-between">
@@ -132,26 +132,26 @@ export default function InternshipPostsPage() {
         </div>
 
         {/* Search and Add Button */}
-        <div className="mb-5 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] md:flex-row md:items-center md:justify-between">
           <input
             type="text"
             placeholder="Search internships by title, company, or location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500 md:max-w-xl"
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500 md:max-w-xl"
           />
 
           <button
   type="button"
   onClick={() => window.location.href = "/admin/internship-posts/add"}
-  className="rounded-lg bg-[#ff7a00] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#e96d00]"
+  className="rounded-xl bg-[#ff7a00] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#e96d00]"
 >
   + Add New Post
 </button>
         </div>
 
         {/* Internship Table */}
-        <section className="overflow-hidden rounded-xl bg-white shadow-sm">
+        <section className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead>
@@ -212,14 +212,14 @@ export default function InternshipPostsPage() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
                         >
                           👁
                         </button>
 
                         <button
                           type="button"
-                          className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
                         >
                           ⋮
                         </button>
@@ -238,42 +238,42 @@ export default function InternshipPostsPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                className="rounded-lg border px-3 py-2"
+                className="rounded-xl border px-3 py-2"
               >
                 ‹
               </button>
 
               <button
                 type="button"
-                className="rounded-lg border bg-[#ff7a00] px-3 py-2 text-white"
+                className="rounded-xl border bg-[#ff7a00] px-3 py-2 text-white"
               >
                 1
               </button>
 
               <button
                 type="button"
-                className="rounded-lg border px-3 py-2"
+                className="rounded-xl border px-3 py-2"
               >
                 2
               </button>
 
               <button
                 type="button"
-                className="rounded-lg border px-3 py-2"
+                className="rounded-xl border px-3 py-2"
               >
                 3
               </button>
 
               <button
                 type="button"
-                className="rounded-lg border px-3 py-2"
+                className="rounded-xl border px-3 py-2"
               >
                 4
               </button>
 
               <button
                 type="button"
-                className="rounded-lg border px-3 py-2"
+                className="rounded-xl border px-3 py-2"
               >
                 ›
               </button>
