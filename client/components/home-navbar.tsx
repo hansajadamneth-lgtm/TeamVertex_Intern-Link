@@ -35,8 +35,8 @@ export function HomeNavbar() {
   const [moreOpen, setMoreOpen] = useState(false);
 
   return (
-    <header className="relative bg-il-navy">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3 lg:px-8">
+    <header className="relative z-30 border-b border-white/10 bg-il-navy">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-10">
         {/* Logo */}
         <Link href="/home" className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white">
@@ -51,12 +51,12 @@ export function HomeNavbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-2 md:flex">
+        <nav className="hidden flex-wrap items-center justify-center gap-x-1 gap-y-2 lg:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="text-sm text-gray-200 transition-colors hover:text-white"
+              className="rounded-xl px-3 py-2 text-sm text-gray-200 transition-all duration-200 hover:bg-white/10 hover:text-white"
             >
               {link.label}
             </Link>
@@ -65,14 +65,14 @@ export function HomeNavbar() {
             <button
               type="button"
               onClick={() => setMoreOpen((value) => !value)}
-              className="flex items-center gap-1 text-sm text-gray-200 transition-colors hover:text-white"
+              className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm text-gray-200 transition-colors hover:bg-white/10 hover:text-white"
               aria-expanded={moreOpen}
             >
               More
               <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {moreOpen && (
-              <div className="absolute right-0 top-8 z-10 w-48 rounded-lg bg-white p-2 shadow-xl">
+              <div className="absolute right-0 top-10 z-40 w-56 rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl">
                 {MORE_LINKS.map((link) => (
                   <Link
                     key={link.href}
@@ -103,7 +103,7 @@ export function HomeNavbar() {
         </nav>
 
         {/* Desktop CTA */}
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <Link href="/login">
             <Button size="sm" className="rounded-full px-5 text-xs uppercase">Sign Out</Button>
           </Link>
@@ -113,7 +113,7 @@ export function HomeNavbar() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-white md:hidden"
+          className="text-white lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
@@ -123,7 +123,7 @@ export function HomeNavbar() {
 
       {/* Mobile menu panel */}
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-white/10 bg-il-navy px-6 pb-4 pt-2 md:hidden">
+        <nav className="flex flex-col gap-1 border-t border-white/10 bg-il-navy px-6 pb-4 pt-2 lg:hidden">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.label}
