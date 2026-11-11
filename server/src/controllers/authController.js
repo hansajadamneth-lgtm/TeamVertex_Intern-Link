@@ -145,13 +145,12 @@ const loginUser = async (req, res, next) => {
     }
 
     // 5. Generate token & set cookie
-    const token = generateToken({ id: user._id.toString(), role: user.role });
+    const token = generateToken({ id: user._id.toString(), role: user.role, version: user.sessionVersion ?? 0 });
     setTokenCookie(res, token);
 
     return res.status(200).json({
       success: true,
       message: "Login successful!",
-      token,
       user: {
         id: user._id,
         fullName: user.fullName,
