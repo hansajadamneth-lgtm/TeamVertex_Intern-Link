@@ -62,6 +62,23 @@ export default function CvBuilder() {
    } catch (e) { setError(e instanceof Error ? e.message : "Delete failed."); }
    finally { setBusy(false); }
  };
+ async function importTextCV(event: React.ChangeEvent<HTMLInputElement>) {
+   const file = event.target.files?.[0];
+   if (!file) return;
+   setError(""); setNotice("");
+   if (!/\.(txt|md)$/i.test(file.name) || file.size > 50000) {
+     setError("Import a plain-text .txt or .md CV smaller than 50 KB. PDF and LinkedIn imports are not yet supported.");
+     event.target.value = "";
+     return;
+   }
+   try {
+     const content = (await file.text()).trim();
+     if (!content) throw new Error("The selected CV file is empty.");
+     setCv(previous => ({ ...previous, summary: content.slice(0, 3000) }));
+     setNotice("Text CV imported into Profile summary. Review and structure your skills, experience and education before saving.");
+   } catch (err) { setError(err instanceof Error ? err.message : "Could not read text CV."); }
+   event.target.value = "";
+ }
  const field = (label: string, value: string, onChange: (s: string) => void, multiline = false) =>
    <label className="block space-y-1.5"><span className="text-xs font-semibold text-slate-600">{label}</span>
      {multiline ? <textarea rows={3} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-slate-200 p-3 text-sm" /> :
@@ -93,6 +110,12 @@ export default function CvBuilder() {
          </div>}
          <section className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
            <h2 className="text-lg font-semibold">About you</h2>
+           <label className="block rounded-xl border border-dashed border-orange-200 bg-orange-50/50 p-4 text-xs text-slate-700">
+             <span className="font-semibold">Import an existing text CV (.txt or .md, optional)</span>
+             <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={importTextCV}
+               className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-orange-100 file:px-3 file:py-2 file:font-semibold file:text-orange-800" />
+             <span className="mt-2 block text-slate-500">Imported text fills your summary; review and move details into skills, education, projects and experience. PDF and LinkedIn import are not yet supported.</span>
+           </label>
            {field("CV version name", cv.name, (v) => update("name", v))}
            {field("Professional headline", cv.headline, (v) => update("headline", v))}
            {field("Profile summary", cv.summary, (v) => update("summary", v), true)}
