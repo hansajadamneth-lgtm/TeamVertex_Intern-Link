@@ -18,6 +18,8 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 app.disable("x-powered-by");
+// Vercel/Render traffic arrives via one trusted reverse proxy hop.
+app.set("trust proxy", 1);
 app.use(helmet());
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
