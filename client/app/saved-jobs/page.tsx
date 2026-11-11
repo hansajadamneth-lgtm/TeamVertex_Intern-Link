@@ -1,90 +1,67 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BookmarkX, Heart, MapPin } from "lucide-react";
 
-type Job = {
-  id: number;
-  category: string;
-  title: string;
-  company: string;
-  location: string;
-  match: number;
-  saved: boolean;
-  age: string;
-};
-
-const initialJobs: Job[] = [
-  { id: 1, category: "IT", title: "Frontend engineer", company: "Horizon Labs", location: "Colombo", match: 84, saved: true, age: "2 days ago" },
-  { id: 2, category: "Marketing", title: "Digital marketing intern", company: "Northwind", location: "Remote", match: 90, saved: true, age: "4 days ago" },
-  { id: 3, category: "Finance", title: "Financial analyst intern", company: "Solvex", location: "Kandy", match: 84, saved: true, age: "6 days ago" },
-  { id: 4, category: "Engineering", title: "Systems engineering intern", company: "Apex Technologies", location: "Colombo", match: 84, saved: true, age: "1 week ago" },
-];
-
-const categories = ["IT", "Marketing", "Finance", "Engineering"];
-
+type Saved = { _id: string; createdAt: string; job: {
+  _id: string; title: string; companyName: string; location: string;
+  category: string; type: string; createdAt: string;
+} };
+const categories = ["All", "IT", "Marketing", "Finance", "Engineering", "Other"];
 export default function SavedJobsPage() {
-  const [activeCategory, setActiveCategory] = useState("IT");
-  const [jobs, setJobs] = useState(initialJobs);
-  const visibleJobs = jobs.filter((job) => job.category === activeCategory && job.saved);
+  const [items, setItems] = useState<Saved[]>([]);
+  const [category, setCategory] = useState("All");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [removing, setRemoving] = useState("");
 
-  const toggleSaved = (id: number) => {
-    setJobs((current) => current.map((job) => (job.id === id ? { ...job, saved: !job.saved } : job)));
-  };
-
-  return (
-    <main className="il-page-enter min-h-screen bg-[#f1f1f1] text-[#111a2e]">
-      <Header active="Saved" />
-      <section className="mx-auto min-h-[calc(100vh-76px)] max-w-[1120px] bg-white px-5 pb-20 pt-6 sm:px-10">
-        <h1 className="text-xl font-normal text-[#8b8b8b]">saved jobs</h1>
-        <CategoryTabs active={activeCategory} onChange={setActiveCategory} />
-        <div className="mx-auto mt-9 grid max-w-[820px] gap-7 rounded-xl border border-[#d4d4d4] bg-white p-5 shadow-[0_2px_5px_rgba(0,0,0,0.2)] sm:grid-cols-2 sm:p-7">
-          {visibleJobs.map((job) => (
-            <JobCard key={job.id} job={job} onToggle={() => toggleSaved(job.id)} />
-          ))}
+  useEffect(() => {
+    fetch("/api/saved-jobs", { cache: "no-store" })
+      .then(async r => { const j = await r.json(); if (!r.ok || !j.success) throw new Error(j.message || "Could not load saved internships."); return j.data as Saved[]; })
+      .then(setItems).catch((e: Error) => setError(e.message)).finally(()=>setLoading(false));
+  }, []);
+  async function remove(jobId: string) {
+    setRemoving(jobId); setError(""); setNotice("");
+    try {
+      const r = await fetch(`/api/saved-jobs/${jobId}`, { method: "DELETE" });
+      const j = await r.json();
+      if (!r.ok || !j.success) throw new Error(j.message || "Could not remove internship.");
+      setItems(current => current.filter(x=>x.job._id!==jobId));
+      setNotice("Internship removed from saved jobs.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Could not remove internship."); }
+    finally { setRemoving(""); }
+  }
+  const filtered = items.filter(x=>category==="All"||x.job.category===category);
+  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-5 py-10 text-[#17233b]">
+    <section className="mx-auto max-w-5xl">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h1 className="text-3xl font-bold">Saved internships</h1>
+          <p className="mt-2 text-sm text-slate-500">Your bookmarked opportunities are stored securely with your InternLink account.</p></div>
+        <Link href="/job-details" className="rounded-xl bg-[#ff7417] px-5 py-3 text-sm font-semibold text-white">Browse internships</Link>
+      </div>
+      <div className="mt-7 flex flex-wrap gap-2">{categories.map(c=><button type="button" key={c} onClick={()=>setCategory(c)}
+        className={`rounded-full px-4 py-2 text-sm font-semibold ${category===c?"bg-[#0b1b3e] text-white":"border bg-white hover:bg-slate-50"}`}>{c}</button>)}</div>
+      {loading && <p className="mt-7 text-sm">Loading saved internships...</p>}
+      {error && <p role="alert" className="mt-7 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
+      {notice && <p role="status" className="mt-5 rounded-xl bg-green-50 p-4 text-sm text-green-700">{notice}</p>}
+      {!loading && !error && filtered.length===0 && <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <BookmarkX className="mx-auto h-10 w-10 text-slate-400"/>
+        <p className="mt-3 font-semibold">No saved internships {category==="All"?"yet":`in ${category}`}.</p>
+        <p className="mt-2 text-sm text-slate-500">Use the Save button on a verified internship to add it here.</p>
+        <Link href="/job-details" className="mt-5 inline-block text-sm font-bold text-orange-600">Find internships</Link>
+      </div>}
+      <div className="mt-7 grid gap-4 sm:grid-cols-2">{filtered.map(saved=><article key={saved._id} className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">{saved.job.category}</span>
+          <button type="button" onClick={()=>remove(saved.job._id)} disabled={removing===saved.job._id}
+            aria-label={`Remove ${saved.job.title} from saved jobs`} className="text-orange-600 disabled:opacity-40"><Heart className="h-5 w-5" fill="currentColor"/></button>
         </div>
-        {visibleJobs.length === 0 && <p className="mt-6 text-center text-sm text-[#7b8799]">No saved jobs in {activeCategory}.</p>}
-      </section>
-    </main>
-  );
-}
-
-function Header({ active }: { active: string }) {
-  const links = [
-    ["Home", "/home"],
-    ["Find jobs", "/job-details"],
-    ["cv builder", "/"],
-    ["Recommendation", "/recommendations"],
-    ["Saved", "/saved-jobs"],
-  ];
-  return (
-    <header className="bg-[#0b142b] px-4 py-3 sm:px-8">
-      <nav className="mx-auto flex max-w-[1120px] items-center justify-between">
-        <Link href="/home" aria-label="InternLink home"><span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white"><Image src="/internlink-logo.png" alt="InternLink" width={40} height={40} className="h-full w-full object-contain" /></span></Link>
-        <div className="hidden items-center gap-6 text-xs text-white sm:flex">{links.map(([label, href]) => <Link key={label} href={href} className={label === active ? "font-bold text-white" : "text-slate-300 hover:text-white"}>{label}</Link>)}</div>
-        <Link href="/login" className="rounded-full bg-[#ff7417] px-5 py-2 text-xs font-semibold uppercase text-white hover:bg-[#e4640e]">Sign out</Link>
-      </nav>
-    </header>
-  );
-}
-
-function CategoryTabs({ active, onChange }: { active: string; onChange: (category: string) => void }) {
-  return <div className="mt-7 flex flex-wrap justify-center gap-3">{categories.map((category) => <button key={category} type="button" onClick={() => onChange(category)} className={`rounded-xl px-5 py-2 text-xs shadow-[0_2px_3px_rgba(0,0,0,0.15)] ${active === category ? "bg-[#0b142b] font-semibold text-white" : "bg-white text-[#17233b] hover:bg-[#f4f5f7]"}`}>{category}</button>)}</div>;
-}
-
-function JobCard({ job, onToggle }: { job: Job; onToggle: () => void }) {
-  return (
-    <Card className={`relative min-h-[112px] border-b border-[#d9d9d9] border-l-4 border-l-[#ff7417] bg-white px-4 py-4 shadow-[0_2px_3px_rgba(0,0,0,0.12)] ${!job.saved ? "opacity-50" : ""}`}>
-      <button type="button" onClick={onToggle} aria-label={job.saved ? `Remove ${job.title} from saved jobs` : `Save ${job.title}`} className="absolute right-3 top-3 text-[#111] hover:text-[#ff7417]"><Heart className="h-3.5 w-3.5" fill={job.saved ? "currentColor" : "none"} /></button>
-      <Link href={`/job-details?job=${job.id}`} className="block">
-        <h2 className="pr-6 text-sm font-normal text-[#17233b]">{job.title}</h2>
-        <p className="mt-1 text-sm">{job.company} · {job.location}</p>
-        <span className="mt-4 inline-block rounded-full bg-[#ffe1cf] px-4 py-1 text-xs text-[#ff7417]">{job.match}% match</span>
-        <p className="mt-1 text-xs text-[#9da4ae]">Posted · {job.age}</p>
-      </Link>
-    </Card>
-  );
+        <h2 className="mt-4 text-lg font-bold">{saved.job.title}</h2><p className="mt-1 text-sm text-slate-600">{saved.job.companyName}</p>
+        <p className="mt-3 flex items-center gap-1 text-xs text-slate-500"><MapPin size={14}/>{saved.job.location} · {saved.job.type}</p>
+        <Link href={`/job-details?job=${encodeURIComponent(saved.job._id)}`} className="mt-5 inline-flex rounded-xl bg-[#0b1b3e] px-5 py-3 text-sm font-semibold text-white">View internship</Link>
+      </article>)}</div>
+    </section>
+  </main>;
 }
