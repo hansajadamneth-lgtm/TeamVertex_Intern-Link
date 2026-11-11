@@ -52,6 +52,14 @@ const errorHandler = (err, req, res, next) => {
     message = "Your authentication session has expired. Please log in again.";
   }
 
+  // Do not expose raw MongoDB/driver exceptions or internal error details in production.
+  // Keep validation and intentional 4xx responses informative for the client.
+  if (statusCode >= 500 && process.env.NODE_ENV === "production") {
+    console.error("API internal error:", err);
+    message = "Internal server error. Please try again later.";
+    errors = null;
+  }
+
   res.status(statusCode).json({
     success: false,
     message,
