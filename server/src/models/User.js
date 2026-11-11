@@ -71,6 +71,7 @@ const userSchema = new mongoose.Schema(
       enum: ["Active", "Pending", "Inactive"],
       default: "Active",
     },
+    sessionVersion: { type: Number, default: 0, min: 0 },
     resetPasswordToken: {
       type: String,
       default: null,
