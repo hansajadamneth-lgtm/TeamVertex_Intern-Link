@@ -28,7 +28,7 @@ export default function JobsPage() {
    finally{setLoading(false);}
   };run();
   fetch("/api/saved-jobs",{cache:"no-store"}).then(async r=>r.ok?r.json():null)
-    .then(j=>{if(j?.success)setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id).filter(Boolean));})
+    .then(j=>{if(j?.success)setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id).filter((id: string | undefined): id is string => Boolean(id)));})
     .catch(()=>{});
  },[]);
  const filtered=jobs.filter(j=>(category==="All"||j.category===category)&&
