@@ -1,370 +1,64 @@
+"use client";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+
+type Company = { _id: string; name: string; industry: string; email: string; status: "Verified" | "Pending" | "Suspended"; createdAt?: string };
 export default function ManageCompaniesPage() {
-  return (
-    <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-6">
-
-      {/* Top Header */}
-      <div className="mb-6 flex items-center justify-between">
-
-        <div className="flex items-center gap-4">
-          <button className="text-2xl text-gray-700">
-            ☰
-          </button>
-
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Companies
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-6">
-
-          {/* Search */}
-          <div className="flex h-10 w-64 items-center rounded-full bg-white px-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-            <span className="mr-2 text-gray-500">⌕</span>
-            <span className="text-sm text-gray-400">
-              Search
-            </span>
-          </div>
-
-          {/* Notification */}
-          <span className="text-2xl">🔔</span>
-
-          {/* User */}
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-              👤
-            </div>
-
-            <div className="text-sm">
-              <p className="font-semibold text-gray-800">
-                Name
-              </p>
-              <p className="text-gray-500">
-                Email Address
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-
-        {/* Total Companies */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-          <p className="text-sm text-gray-500">
-            Total Companies
-          </p>
-
-          <div className="mt-2 flex items-end justify-between">
-            <p className="text-3xl font-semibold text-gray-900">
-              36
-            </p>
-
-            <p className="text-xs text-green-600">
-              ↑ 12.5% vs last month
-            </p>
-          </div>
-        </div>
-
-        {/* Verified Companies */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-          <p className="text-sm text-gray-500">
-            Verified Companies
-          </p>
-
-          <div className="mt-2 flex items-end justify-between">
-            <p className="text-3xl font-semibold text-gray-900">
-              28
-            </p>
-
-            <p className="text-xs text-green-600">
-              ↑ 12.5% vs last month
-            </p>
-          </div>
-        </div>
-
-        {/* Pending Approval */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-          <p className="text-sm text-gray-500">
-            Pending Approval
-          </p>
-
-          <div className="mt-2 flex items-end justify-between">
-            <p className="text-3xl font-semibold text-gray-900">
-              8
-            </p>
-
-            <p className="text-xs text-green-600">
-              ↑ 12.5% vs last month
-            </p>
-          </div>
-        </div>
-
-        {/* Suspended */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-          <p className="text-sm text-gray-500">
-            Pending Approval
-          </p>
-
-          <div className="mt-2 flex items-end justify-between">
-            <p className="text-3xl font-semibold text-gray-900">
-              2
-            </p>
-
-            <p className="text-xs text-red-500">
-              ↓ 12.5% vs last month
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Search + Add Company */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] md:flex-row md:items-center md:justify-between">
-
-        <div className="flex h-11 flex-1 items-center rounded-full border border-gray-200 px-4">
-          <span className="mr-3 text-gray-400">
-            ⌕
-          </span>
-
-          <span className="text-sm text-gray-400">
-            Search companies by name, email, industry...
-          </span>
-        </div>
-              {/* Companies Table */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-
-        {/* Table Header */}
-        <div className="grid grid-cols-6 border-b border-gray-200 px-6 py-4 text-sm font-semibold text-gray-700">
-
-          <div>Company</div>
-          <div>Industry</div>
-          <div>Email</div>
-          <div>Status</div>
-          <div>Joined Date</div>
-          <div>Actions</div>
-
-        </div>
-
-        {/* Company 1 */}
-        <div className="grid grid-cols-6 items-center border-b border-gray-100 px-6 py-4 text-sm">
-
-          <div>
-            <p className="font-medium text-gray-800">
-              ABC Technologies (Pvt) Ltd
-            </p>
-            <p className="text-xs text-gray-500">
-              www.abctech.com
-            </p>
-          </div>
-
-          <div className="text-gray-600">
-            Information Technology
-          </div>
-
-          <div className="text-gray-600">
-            contact@abctech.com
-          </div>
-
-          <div>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-              Verified
-            </span>
-          </div>
-
-          <div className="text-gray-600">
-            10 Jan 2026
-          </div>
-
-          <div className="flex gap-2">
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              👁
-            </button>
-
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              ⋮
-            </button>
-          </div>
-
-        </div>
-
-        {/* Company 2 */}
-        <div className="grid grid-cols-6 items-center border-b border-gray-100 px-6 py-4 text-sm">
-
-          <div>
-            <p className="font-medium text-gray-800">
-              TechNova Solutions
-            </p>
-            <p className="text-xs text-gray-500">
-              www.technova.lk
-            </p>
-          </div>
-
-          <div className="text-gray-600">
-            Software Development
-          </div>
-
-          <div className="text-gray-600">
-            info@technova.lk
-          </div>
-
-          <div>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-              Verified
-            </span>
-          </div>
-
-          <div className="text-gray-600">
-            25 Jan 2026
-          </div>
-
-          <div className="flex gap-2">
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              👁
-            </button>
-
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              ⋮
-            </button>
-          </div>
-
-        </div>
-
-        {/* Company 3 */}
-        <div className="grid grid-cols-6 items-center border-b border-gray-100 px-6 py-4 text-sm">
-
-          <div>
-            <p className="font-medium text-gray-800">
-              Global Finance Corp
-            </p>
-            <p className="text-xs text-gray-500">
-              www.globalfinance.com
-            </p>
-          </div>
-
-          <div className="text-gray-600">
-            Finance
-          </div>
-
-          <div className="text-gray-600">
-            hr@globalfinance.com
-          </div>
-
-          <div>
-            <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-600">
-              Suspended
-            </span>
-          </div>
-
-          <div className="text-gray-600">
-            20 Jan 2026
-          </div>
-
-          <div className="flex gap-2">
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              👁
-            </button>
-
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              ⋮
-            </button>
-          </div>
-
-        </div>
-
-        {/* Company 4 */}
-        <div className="grid grid-cols-6 items-center border-b border-gray-100 px-6 py-4 text-sm">
-
-          <div>
-            <p className="font-medium text-gray-800">
-              DesignHub (Pvt) Ltd
-            </p>
-            <p className="text-xs text-gray-500">
-              www.designhub.com
-            </p>
-          </div>
-
-          <div className="text-gray-600">
-            Design & Creative
-          </div>
-
-          <div className="text-gray-600">
-            hello@designhub.com
-          </div>
-
-          <div>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-              Verified
-            </span>
-          </div>
-
-          <div className="text-gray-600">
-            19 Jan 2026
-          </div>
-
-          <div className="flex gap-2">
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              👁
-            </button>
-
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              ⋮
-            </button>
-          </div>
-
-        </div>
-
-        {/* Company 5 */}
-        <div className="grid grid-cols-6 items-center px-6 py-4 text-sm">
-
-          <div>
-            <p className="font-medium text-gray-800">
-              InnovateX Labs
-            </p>
-            <p className="text-xs text-gray-500">
-              www.innovatex.lk
-            </p>
-          </div>
-
-          <div className="text-gray-600">
-            Research & Development
-          </div>
-
-          <div className="text-gray-600">
-            careers@innovatex.lk
-          </div>
-
-          <div>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-              Verified
-            </span>
-          </div>
-
-          <div className="text-gray-600">
-            16 Jan 2026
-          </div>
-
-          <div className="flex gap-2">
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              👁
-            </button>
-
-            <button className="rounded-xl border px-3 py-1 hover:bg-[#f6f8fc]">
-              ⋮
-            </button>
-          </div>
-
-        </div>
-
-      </div>
-
-        <button className="rounded-xl bg-[#ff7a00] px-6 py-3 text-sm font-semibold text-white hover:bg-[#e96d00]">
-          + Add Companies
-        </button>
-
-      </div>
-
-    </main>
-  );
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [changing, setChanging] = useState("");
+  const refresh = useCallback(async () => {
+    const r = await fetch("/api/admin/companies", { cache: "no-store" });
+    const j = await r.json();
+    if (!r.ok || !j.success) throw new Error(j.message || "Could not load companies.");
+    setCompanies(j.data || []);
+  }, []);
+  useEffect(() => { refresh().catch(e => setError(e.message)).finally(() => setLoading(false)); }, [refresh]);
+  async function setStatus(id: string, status: Company["status"]) {
+    if (!window.confirm(`Change company verification status to ${status}?`)) return;
+    setChanging(id); setError(""); setNotice("");
+    try {
+      const r = await fetch(`/api/companies/${id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+      const j = await r.json();
+      if (!r.ok || !j.success) throw new Error(j.message || "Could not update status.");
+      setNotice("Company status updated successfully.");
+      await refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Could not update company."); }
+    finally { setChanging(""); }
+  }
+  const filtered = companies.filter(c => [c.name,c.industry,c.email,c.status].join(" ").toLowerCase().includes(search.toLowerCase()));
+  const counts = { total: companies.length, verified: companies.filter(c=>c.status==="Verified").length,
+    pending: companies.filter(c=>c.status==="Pending").length, suspended: companies.filter(c=>c.status==="Suspended").length };
+  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-5 text-[#17233b] sm:p-8">
+    <h1 className="text-3xl font-bold">Company verification</h1>
+    <p className="mt-2 text-sm text-slate-500">Only verified companies can publish public internship listings.</p>
+    <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {Object.entries(counts).map(([label,n]) => <div key={label} className="rounded-2xl border bg-white p-5"><p className="text-sm capitalize text-slate-500">{label}</p><p className="mt-2 text-3xl font-bold">{n}</p></div>)}
+    </div>
+    <input aria-label="Search companies" placeholder="Search companies by name, email, industry or status..."
+      value={search} onChange={e=>setSearch(e.target.value)}
+      className="mt-6 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-orange-500" />
+    {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+    {notice && <p role="status" className="mt-4 rounded-xl bg-green-50 p-4 text-sm text-green-700">{notice}</p>}
+    <div className="mt-5 overflow-x-auto rounded-2xl border bg-white shadow-sm">
+      <table className="w-full min-w-[760px] text-left text-sm">
+        <thead className="bg-slate-50 text-slate-500"><tr><th className="p-4">Company</th><th className="p-4">Industry</th><th className="p-4">Email</th><th className="p-4">Status</th><th className="p-4">Action</th></tr></thead>
+        <tbody>{filtered.map(c => <tr key={c._id} className="border-t">
+          <td className="p-4 font-semibold">{c.name}</td><td className="p-4">{c.industry}</td><td className="p-4">{c.email}</td>
+          <td className="p-4"><span className="rounded-full bg-orange-50 px-3 py-1 font-semibold text-orange-700">{c.status}</span></td>
+          <td className="p-4"><div className="flex flex-wrap gap-2">
+            {c.status !== "Verified" && <button disabled={changing===c._id} onClick={()=>setStatus(c._id,"Verified")} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Verify</button>}
+            {c.status !== "Suspended" && <button disabled={changing===c._id} onClick={()=>setStatus(c._id,"Suspended")} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 disabled:opacity-50">Suspend</button>}
+            {c.status !== "Pending" && <button disabled={changing===c._id} onClick={()=>setStatus(c._id,"Pending")} className="rounded-lg border px-3 py-2 text-xs font-semibold disabled:opacity-50">Pending</button>}
+          </div></td>
+        </tr>)}</tbody>
+      </table>
+      {!loading && filtered.length===0 && <p className="p-8 text-center text-sm text-slate-500">No companies match. New employer registrations will appear here.</p>}
+      {loading && <p className="p-6 text-sm">Loading companies...</p>}
+    </div>
+    <Link href="/admin/dashboard" className="mt-6 inline-block text-sm font-semibold text-orange-600">← Back to dashboard</Link>
+  </main>;
 }
