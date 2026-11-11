@@ -28,12 +28,12 @@ export default function SavedJobsPage() {
       const r = await fetch(`/api/saved-jobs/${jobId}`, { method: "DELETE" });
       const j = await r.json();
       if (!r.ok || !j.success) throw new Error(j.message || "Could not remove internship.");
-      setItems(current => current.filter(x=>x.job._id!==jobId));
+      setItems(current => current.filter(x=>x.job?._id!==jobId));
       setNotice("Internship removed from saved jobs.");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not remove internship."); }
     finally { setRemoving(""); }
   }
-  const filtered = items.filter(x=>category==="All"||x.job.category===category);
+  const filtered = items.filter(x=>x.job && (category==="All"||x.job.category===category));
   return <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-5 py-10 text-[#17233b]">
     <section className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
