@@ -12,7 +12,7 @@ export function ResetHero() {
         account access.
       </h1>
       <p className="mt-4 max-w-md text-gray-500">
-        Enter your email to receive a secure verification code and get back into your account quickly.
+        Password reset email delivery has not yet been configured. Signed-in users can change passwords in Account Settings. If locked out, contact an InternLink administrator.
       </p>
 
       <div className="mt-10 flex items-center gap-6 text-gray-700">
