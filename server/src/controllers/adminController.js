@@ -246,7 +246,32 @@ const getReports = async (req, res, next) => {
   }
 };
 
+/**
+ * Real administrative listings: never use public catalog filters for oversight.
+ */
+const getAdminCompanies = async (req, res, next) => {
+  try {
+    const companies = await Company.find()
+      .sort({ createdAt: -1 }).limit(100)
+      .select("name industry email website location status createdAt")
+      .lean();
+    return res.json({ success: true, count: companies.length, data: companies });
+  } catch (error) { next(error); }
+};
+
+const getAdminJobs = async (req, res, next) => {
+  try {
+    const jobs = await Job.find()
+      .sort({ createdAt: -1 }).limit(100)
+      .select("title companyName location category type status applicationsCount createdAt company postedBy")
+      .lean();
+    return res.json({ success: true, count: jobs.length, data: jobs });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
+  getAdminCompanies,
+  getAdminJobs,
   getAdminStats,
   getStudents,
   updateStudentStatus,
