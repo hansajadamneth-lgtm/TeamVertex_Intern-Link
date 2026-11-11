@@ -1,157 +1,131 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Check, Copy, FileText, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Copy, FileText, Printer, Sparkles } from "lucide-react";
 
-const navItems = [
-  { label: "AI Cover Letter", href: "/cover-letter", active: true },
-  { label: "Recommendations", href: "/recommendations" },
-  { label: "Applications", href: "/applications", count: 4 },
-  { label: "Notifications", href: "/notifications" },
-];
-
-const defaultForm = {
-  jobTitle: "",
-  company: "",
-  requirements: "",
-  background: "",
-  tone: "Enthusiastic & Driven (Internship Profile)",
+type Draft = {
+  jobTitle: string;
+  company: string;
+  requirements: string;
+  background: string;
+  tone: "professional" | "enthusiastic" | "concise";
 };
+const initial: Draft = { jobTitle: "", company: "", requirements: "", background: "", tone: "enthusiastic" };
+
+function createLetter(form: Draft, name: string): string {
+  const title = form.jobTitle.trim();
+  const company = form.company.trim();
+  const skills = form.background.trim().replace(/\s+/g, " ");
+  const requirements = form.requirements.trim().replace(/\s+/g, " ");
+  const intro = form.tone === "professional"
+    ? `I am writing to apply for the ${title} internship at ${company}.`
+    : form.tone === "concise"
+      ? `I would like to apply for the ${title} internship at ${company}.`
+      : `I am excited to apply for the ${title} internship at ${company} and contribute while developing my professional skills.`;
+  const background = skills
+    ? `My background and experience include ${skills}. I would welcome the opportunity to use these skills in a real-world team environment.`
+    : "I am eager to apply what I have learned through my studies and projects in a professional environment.";
+  const alignment = requirements
+    ? `I understand that the role calls for ${requirements}. I look forward to demonstrating how my experience and willingness to learn align with these expectations.`
+    : "I am keen to learn from your team, collaborate responsibly, and contribute to meaningful internship projects.";
+  return `Dear Hiring Manager,\n\n${intro}\n\n${background}\n\n${alignment}\n\nThank you for considering my application. I would welcome an opportunity to discuss how I could contribute to your team.\n\nSincerely,\n${name.trim() || "Your name"}`;
+}
 
 export default function CoverLetterPage() {
-  const [form, setForm] = useState(defaultForm);
-  const [generated, setGenerated] = useState(false);
+  const [form, setForm] = useState<Draft>(initial);
+  const [name, setName] = useState("");
+  const [letter, setLetter] = useState("");
+  const [notice, setNotice] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const updateField = (field: keyof typeof defaultForm, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-    setGenerated(false);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => { if (active && data?.success) setName(data.user?.fullName || ""); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const change = (key: keyof Draft, value: string) => {
+    setForm(current => ({ ...current, [key]: value }));
+    setLetter("");
+    setNotice("");
+    setCopied(false);
   };
-
-  const generateLetter = () => setGenerated(true);
-
-  const coverLetter = `Dear Hiring Manager,
-
-I am excited to apply for the ${form.jobTitle || "Software Engineer"} position at ${form.company || "your company"}. With a strong foundation in frontend development and a passion for building thoughtful digital experiences, I am confident I can make a meaningful contribution to your team.
-
-My experience with React, TypeScript, JavaScript, and responsive UI development has helped me turn ideas into practical, user-focused products. I enjoy learning quickly, collaborating with others, and solving problems with clean, maintainable code.
-
-I would welcome the opportunity to discuss how my skills and enthusiasm align with this role. Thank you for considering my application.
-
-Sincerely,
-Hansaja Damneth`;
-
-  const copyLetter = async () => {
-    await navigator.clipboard.writeText(coverLetter);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  };
-
+  const fieldStyle = "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100";
+  async function copyLetter() {
+    if (!letter) return;
+    try { await navigator.clipboard.writeText(letter); setCopied(true); setNotice("Letter copied to clipboard."); }
+    catch { setNotice("Copy is unavailable in this browser. Select the text to copy it manually."); }
+  }
+  function printLetter() {
+    if (letter) window.print();
+  }
   return (
-    <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]">
-      <header className="bg-[#0b142b] px-4 py-3 sm:px-8">
-        <nav className="mx-auto flex max-w-[1120px] items-center justify-between">
-          <Link href="/home" aria-label="InternLink home">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden bg-white">
-              <Image src="/internlink-logo.png" alt="InternLink" width={40} height={40} className="h-full w-full object-contain" />
-            </span>
-          </Link>
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1 text-xs text-white sm:gap-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center gap-1.5 rounded-xl px-2 py-2 transition-all duration-200 sm:px-3 ${
-                  item.active ? "bg-[#ff7417] font-semibold" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {item.label}
-                {item.count && <span className="rounded-full bg-[#667085] px-1.5 py-0.5 text-xs">{item.count}</span>}
-              </Link>
-            ))}
-          </div>
-          <Link href="/login" className="hidden text-xs text-slate-300 hover:text-white sm:block">Sign out</Link>
-        </nav>
-      </header>
-
-      <section className="mx-auto max-w-[1120px] px-5 pb-16 pt-10 sm:px-10">
-        <div className="mb-7">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold text-[#17233b]">AI Cover Letter Generator</h1>
-            <span className="rounded bg-[#fff0e5] px-2 py-1 text-xs font-semibold uppercase tracking-wide text-[#e86b18]">Engine v1.0</span>
-          </div>
-          <p className="mt-1 text-sm text-[#7b8799]">AI feature module to instantly create structured professional pitch documents.</p>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-          <section className="overflow-hidden rounded-xl border border-[#dce3eb] bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-            <div className="flex items-center justify-between border-b border-[#e7ecf1] px-4 py-3">
-              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#17233b]">
-                <Sparkles className="h-3 w-3 text-[#ff7417]" /> Target specifications
-              </h2>
-              <span className="rounded-full bg-[#f1f4f7] px-2 py-1 text-xs text-[#8994a4]">MS-INPUT</span>
-            </div>
-            <div className="space-y-4 p-4">
-              <Field label="Target job title" value={form.jobTitle} placeholder="e.g. Associate Software Engineer" onChange={(value) => updateField("jobTitle", value)} />
-              <Field label="Company name" value={form.company} placeholder="e.g. WSO2, Dialog Axiata" onChange={(value) => updateField("company", value)} />
-              <TextArea label="Job ad / core requirements" value={form.requirements} placeholder="Paste vacancy requirements or required technologies listed on the posting..." onChange={(value) => updateField("requirements", value)} />
-              <TextArea label="Your core skills & background" value={form.background} placeholder="e.g. React, Tailwind CSS, Python, Git. Mention active projects or university modules..." onChange={(value) => updateField("background", value)} />
-              <Field label="Letter tone profile" value={form.tone} onChange={(value) => updateField("tone", value)} />
-              <button type="button" onClick={generateLetter} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff7417] py-3 text-xs font-bold uppercase tracking-wide text-white transition-all duration-200 hover:bg-[#e4640e]">
-                <Sparkles className="h-3 w-3" /> Generate custom cover letter
+    <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-4 py-10 text-[#17233b] sm:px-8">
+      <section className="mx-auto max-w-6xl">
+        <Link href="/home" className="text-sm font-semibold text-orange-600">← Back to InternLink</Link>
+        <div className="mt-5 flex items-center gap-3"><Sparkles className="h-8 w-8 text-orange-500" />
+          <h1 className="text-3xl font-bold">Cover letter builder</h1></div>
+        <p className="mt-2 max-w-3xl text-sm text-slate-600">
+          Create an editable, structured internship cover letter using your details. This is a transparent template-based assistant, not a generative AI service.
+        </p>
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-2xl border bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold">Your application details</h2>
+            <form onSubmit={event => { event.preventDefault(); setLetter(createLetter(form, name)); setNotice("Draft created. Review it before sending."); }}
+              className="mt-5 space-y-4">
+              <label className="block text-sm font-medium">Your name
+                <input className={fieldStyle} maxLength={100} required value={name} onChange={event => { setName(event.target.value); setLetter(""); }} placeholder="Your full name" />
+              </label>
+              <label className="block text-sm font-medium">Internship title
+                <input className={fieldStyle} maxLength={150} required value={form.jobTitle} onChange={event => change("jobTitle", event.target.value)} placeholder="Frontend Developer Intern" />
+              </label>
+              <label className="block text-sm font-medium">Company
+                <input className={fieldStyle} maxLength={120} required value={form.company} onChange={event => change("company", event.target.value)} placeholder="Company name" />
+              </label>
+              <label className="block text-sm font-medium">Your skills, education and projects
+                <textarea className={fieldStyle} maxLength={1200} rows={4} required value={form.background} onChange={event => change("background", event.target.value)} placeholder="Your real experience — e.g. Python, React and a university project" />
+              </label>
+              <label className="block text-sm font-medium">Role requirements (optional)
+                <textarea className={fieldStyle} maxLength={1000} rows={3} value={form.requirements} onChange={event => change("requirements", event.target.value)} placeholder="Key requirements from the internship description" />
+              </label>
+              <label className="block text-sm font-medium">Tone
+                <select className={fieldStyle} value={form.tone} onChange={event => change("tone", event.target.value)}>
+                  <option value="enthusiastic">Enthusiastic</option><option value="professional">Professional</option><option value="concise">Concise</option>
+                </select>
+              </label>
+              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff7417] px-5 py-3 font-bold text-white hover:bg-[#e4640e]">
+                <Sparkles className="h-4 w-4" /> Generate my letter
               </button>
-            </div>
+            </form>
           </section>
-
-          <section className="overflow-hidden rounded-xl border border-[#dce3eb] bg-white shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-            <div className="flex items-center justify-between border-b border-[#e7ecf1] px-4 py-3">
-              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#17233b]">
-                <span className="h-2 w-2 rounded-full bg-[#18b979]" /> Document preview canvas
-              </h2>
-              <div className="flex gap-2">
-                <button type="button" onClick={copyLetter} className="flex items-center gap-1 rounded border border-[#e2e7ed] px-2 py-1.5 text-xs text-[#536174] hover:bg-[#f7f9fb]">
-                  {copied ? <Check className="h-3 w-3 text-[#18a96d]" /> : <Copy className="h-3 w-3" />} {copied ? "Copied" : "Copy content"}
+          <section className="rounded-2xl border bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xl font-semibold"><FileText className="h-5 w-5 text-orange-500" /> Letter preview</h2>
+              <div className="flex gap-2 print:hidden">
+                <button type="button" disabled={!letter} onClick={copyLetter} className="flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold disabled:opacity-40">
+                  {copied ? <Check className="h-4 w-4"/> : <Copy className="h-4 w-4"/>} Copy
                 </button>
-                <button type="button" onClick={() => window.print()} className="rounded bg-[#356be8] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2858cc]">Export PDF</button>
+                <button type="button" disabled={!letter} onClick={printLetter} className="flex items-center gap-1 rounded-lg bg-[#0b1b3e] px-3 py-2 text-xs font-semibold text-white disabled:opacity-40">
+                  <Printer className="h-4 w-4"/> Save as PDF
+                </button>
               </div>
             </div>
-            <div className="min-h-[440px] bg-[#f7f9fb] p-6 sm:p-10">
-              <article className="mx-auto min-h-[360px] max-w-[560px] rounded-xl border border-[#edf0f3] bg-white p-7 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] sm:p-10">
-                {!generated ? (
-                  <div className="flex h-[290px] flex-col items-center justify-center text-center">
-                    <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#fff2e8] text-[#ff7417]"><FileText className="h-4 w-4" /></span>
-                    <h3 className="text-sm font-semibold text-[#17233b]">AI Copywriting Document Canvas</h3>
-                    <p className="mt-2 max-w-[260px] text-xs leading-4 text-[#8490a2]">Specify job insights inside the configuration metrics panel to trigger the generative copywriting pipeline.</p>
-                  </div>
-                ) : (
-                  <div className="whitespace-pre-line text-sm leading-5 text-[#354052]">{coverLetter}</div>
-                )}
-              </article>
+            {notice && <p role="status" className="mt-4 rounded-lg bg-orange-50 p-3 text-sm text-orange-900 print:hidden">{notice}</p>}
+            <div className="mt-6 min-h-[430px] rounded-xl border bg-white p-5 shadow-inner sm:p-8">
+              {letter ? (
+                <textarea aria-label="Editable cover letter" value={letter} onChange={event => setLetter(event.target.value)}
+                  className="h-[460px] w-full resize-y whitespace-pre-wrap border-0 bg-transparent text-sm leading-7 text-slate-800 outline-none print:hidden" />
+              ) : <p className="py-24 text-center text-sm text-slate-500 print:hidden">Fill in your details and generate a letter. Your preview will appear here.</p>}
+              {letter && <div className="hidden whitespace-pre-wrap text-sm leading-7 text-slate-800 print:block">{letter}</div>}
             </div>
-            <div className="border-t border-[#e7ecf1] py-3 text-center text-xs text-[#8490a2]">InternLink Recruitment Framework · Secure Processing Environment</div>
+            <p className="mt-4 text-xs text-slate-500 print:hidden">You can edit the draft. Review all claims before sharing. Use your browser’s print dialog to save as PDF.</p>
           </section>
         </div>
       </section>
     </main>
-  );
-}
-
-function Field({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (value: string) => void }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
-      <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-9 w-full rounded-xl border border-[#dfe6ed] bg-[#f7f9fb] px-3 text-xs text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
-    </label>
-  );
-}
-
-function TextArea({ label, value, placeholder, onChange }: { label: string; value: string; placeholder: string; onChange: (value: string) => void }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#657389]">{label}</span>
-      <textarea value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="h-14 w-full resize-none rounded-xl border border-[#dfe6ed] bg-[#f7f9fb] px-3 py-2 text-xs leading-4 text-[#354052] outline-none placeholder:text-[#a9b3c0] focus:border-[#ff9a5b] focus:ring-2 focus:ring-[#ff9a5b]/20" />
-    </label>
   );
 }
