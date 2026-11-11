@@ -143,7 +143,7 @@ async function runTests() {
   });
 
   // 6. Successful student registration
-  await test("registerUser creates student successfully with 201 and token", async () => {
+  await test("registerUser creates student successfully with 201 and HttpOnly cookie", async () => {
     const origFindOne = User.findOne;
     const origCreate = User.create;
 
@@ -171,7 +171,7 @@ async function runTests() {
 
       assert.strictEqual(res.statusCode, 201);
       assert.strictEqual(res.body.success, true);
-      assert.strictEqual(typeof res.body.token, "string");
+      assert.strictEqual(res.body.token, undefined);
       assert.strictEqual(res.body.user.fullName, "Hansaja Damneth");
       assert.strictEqual(res.body.user.email, "hansaja@example.com");
       assert.strictEqual(res.body.user.role, "student");
@@ -305,7 +305,7 @@ async function runTests() {
   });
 
   // 12. loginUser successful authentication
-  await test("loginUser succeeds with 200, JWT token, and sanitized profile", async () => {
+  await test("loginUser succeeds with 200, HttpOnly cookie, and sanitized profile", async () => {
     const origFindOne = User.findOne;
     User.findOne = () => ({
       select: async () => ({
