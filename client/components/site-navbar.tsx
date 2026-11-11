@@ -18,7 +18,6 @@ const MAIN_LINKS: NavLink[] = [
 ];
 
 const MORE_LINKS: NavLink[] = [
-  { label: "Resume upload", href: "/" },
   { label: "Saved jobs", href: "/saved-jobs" },
   { label: "Notifications", href: "/notifications" },
   { label: "Cover letter", href: "/cover-letter" },
@@ -57,6 +56,7 @@ function pageName(pathname: string) {
     ...GUEST_LINKS,
     { label: "Add internship", href: "/admin/internship-posts/add" },
     { label: "Manage companies", href: "/manage-companies" },
+    { label: "Employer dashboard", href: "/employer" },
   ];
   const match = [...known].sort((a, b) => b.href.length - a.href.length).find((item) => isActive(pathname, item.href));
   if (match) return match.label;
@@ -122,6 +122,7 @@ export function SiteNavbar() {
   const moreLinks = [
     ...MORE_LINKS,
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
+    ...(account?.role === "employer" ? [{ label: "Employer portal", href: "/employer" }] : []),
     ...(!account ? GUEST_LINKS : []),
   ];
   const mainActive = MAIN_LINKS.some((link) => isActive(pathname, link.href));
