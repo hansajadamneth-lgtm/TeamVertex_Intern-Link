@@ -31,7 +31,9 @@ const getCompanies = async (req, res, next) => {
     // 3. Search query across name, industry, location, description
     const searchTerm = search || keyword;
     if (searchTerm) {
-      const escaped = String(searchTerm).trim().slice(0, 80).replace(/[.*+?^${}()|[\]\\]/g, "\\const regex = { $regex: String(searchTerm).trim(), $options: "i" };");
+      const meta = new Set(["\\", ".", "*", "+", "?", "^", "$", "{", "}", "(", ")", "|", "[", "]"]);
+      const escaped = [...String(searchTerm).trim().slice(0, 80)]
+        .map((character) => meta.has(character) ? "\\" + character : character).join("");
       const regex = { $regex: escaped, $options: "i" };
       query.$or = [
         { name: regex },
