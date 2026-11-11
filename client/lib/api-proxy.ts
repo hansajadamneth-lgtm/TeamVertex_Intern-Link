@@ -78,7 +78,7 @@ export async function forwardToBackend(
         success: false,
         message:
           "Express backend service is currently unreachable or warming up (free-tier cold start). Please retry shortly.",
-        error: error.message,
+        ...(process.env.NODE_ENV !== "production" ? { error: error.message } : {}),
       },
       { status: 503 }
     );
