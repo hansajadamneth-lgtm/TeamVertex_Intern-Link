@@ -1,117 +1,59 @@
 "use client";
-
-import Link from "next/link";
-import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-
-type StudentRow = [string, string, string, string, string];
-
-const defaultStudents: StudentRow[] = [
-  ["Sarah Williams", "STU-1024", "sarah.williams@email.com", "Computer Science", "Active"],
-  ["Michael Perera", "STU-1025", "michael.perera@email.com", "Information Technology", "Active"],
-  ["Ayesha Fernando", "STU-1026", "ayesha.fernando@email.com", "Software Engineering", "Inactive"],
-  ["Daniel Silva", "STU-1027", "daniel.silva@email.com", "Data Science", "Active"],
-  ["Nethmi Jayasinghe", "STU-1028", "nethmi.j@email.com", "Information Systems", "Pending"],
-];
-
+import Link from "next/link";
+type Student = { _id: string; fullName: string; email: string; education?: string; status: string; location?: string; skills?: string[] };
 export default function StudentsPage() {
-  const [query, setQuery] = useState("");
-  const [studentList, setStudentList] = useState<StudentRow[]>(defaultStudents);
-
-  useEffect(() => {
-    fetch("/api/admin/students")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped: StudentRow[] = data.data.map(
-            (s: { fullName?: string; id?: string; _id?: string; email?: string; education?: string; status?: string }, idx: number) => [
-              s.fullName || "Student",
-              s.id || `STU-${1020 + idx}`,
-              s.email || "student@email.com",
-              s.education || "Computer Science",
-              s.status || "Active",
-            ]
-          );
-          setStudentList(mapped);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const visible = studentList.filter((student) =>
-    student.join(" ").toLowerCase().includes(query.toLowerCase())
-  );
-
-  return (
-    <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-6 lg:p-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Manage Students</h1>
-          <p className="mt-1 text-sm text-gray-500">View and manage registered student accounts.</p>
-        </div>
-        <button type="button" className="rounded-xl bg-[#ff7a00] px-5 py-3 text-sm font-semibold text-white">
-          + Add Student
-        </button>
-      </header>
-
-      <section className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-        <label className="flex max-w-xl items-center gap-2 rounded-xl border border-gray-200 px-4 py-3">
-          <Search className="h-4 w-4 text-gray-400" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search students by name, email, ID or course..."
-            className="w-full text-sm outline-none"
-          />
-        </label>
-
-        <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left text-sm">
-            <thead>
-              <tr className="border-b text-xs text-gray-500">
-                <th className="px-3 py-3">Student</th>
-                <th className="px-3 py-3">Student ID</th>
-                <th className="px-3 py-3">Email</th>
-                <th className="px-3 py-3">Course</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map(([name, id, email, course, status]) => (
-                <tr key={id} className="border-b last:border-0">
-                  <td className="px-3 py-4 font-medium">{name}</td>
-                  <td className="px-3 py-4 text-gray-500">{id}</td>
-                  <td className="px-3 py-4 text-gray-500">{email}</td>
-                  <td className="px-3 py-4">{course}</td>
-                  <td className="px-3 py-4">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs ${
-                        status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : status === "Pending"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-4">
-                    <button type="button" className="text-xs font-semibold text-orange-500 hover:underline">
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <Link href="/admin/dashboard" className="mt-5 inline-block text-sm text-orange-500 hover:underline">
-        Back to dashboard
-      </Link>
-    </main>
-  );
+  const [students, setStudents] = useState<Student[]>([]);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState("");
+  const [loading, setLoading] = useState(true);
+  async function refresh() {
+    const r = await fetch("/api/admin/students?limit=50", { cache: "no-store" });
+    const j = await r.json();
+    if (!r.ok || !j.success) throw new Error(j.message || "Unable to load students.");
+    setStudents(j.data || []);
+  }
+  useEffect(() => { refresh().catch((e: Error)=>setError(e.message)).finally(()=>setLoading(false)); }, []);
+  async function updateStatus(id: string, status: string) {
+    setBusy(id); setError(""); setNotice("");
+    try {
+      const r = await fetch(`/api/admin/students/${id}/status`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const j = await r.json();
+      if (!r.ok || !j.success) throw new Error(j.message || "Unable to update student.");
+      setNotice("Student status updated.");
+      await refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Unable to update student."); }
+    finally { setBusy(""); }
+  }
+  const visible = students.filter(s=>[s.fullName,s.email,s.education,s.status,s.location].join(" ").toLowerCase().includes(search.toLowerCase()));
+  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-5 text-[#17233b] sm:p-8">
+    <h1 className="text-3xl font-bold">Student accounts</h1>
+    <p className="mt-2 text-sm text-slate-500">Live student accounts. New students sign up through the normal registration flow.</p>
+    <input aria-label="Search student accounts" value={search} onChange={e=>setSearch(e.target.value)}
+      placeholder="Search student by name, email or education..."
+      className="mt-6 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-orange-500"/>
+    {loading && <p className="mt-5 text-sm">Loading students...</p>}
+    {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+    {notice && <p role="status" className="mt-5 rounded-xl bg-green-50 p-4 text-sm text-green-700">{notice}</p>}
+    <div className="mt-6 overflow-x-auto rounded-2xl border bg-white shadow-sm"><table className="w-full min-w-[700px] text-left text-sm">
+      <thead className="bg-slate-50 text-slate-500"><tr><th className="p-4">Student</th><th className="p-4">Education</th><th className="p-4">Skills</th><th className="p-4">Status</th><th className="p-4">Manage status</th></tr></thead>
+      <tbody>{visible.map(s=><tr className="border-t" key={s._id}>
+        <td className="p-4"><p className="font-semibold">{s.fullName}</p><p className="text-xs text-slate-500">{s.email}</p></td>
+        <td className="p-4">{s.education || "Not supplied"}</td><td className="p-4 text-xs">{(s.skills||[]).slice(0,4).join(", ") || "No skills"}</td>
+        <td className="p-4">{s.status}</td>
+        <td className="p-4"><select disabled={busy===s._id} value={s.status} onChange={e=>updateStatus(s._id,e.target.value)}
+          aria-label={`Status for ${s.fullName}`} className="rounded-lg border px-3 py-2 text-sm">
+          {["Active","Pending","Inactive"].map(x=><option key={x}>{x}</option>)}
+        </select></td>
+      </tr>)}</tbody>
+    </table>
+    {!loading && !error && visible.length===0 && <p className="p-7 text-sm text-slate-500">No student accounts found.</p>}
+    </div>
+    <Link href="/admin/dashboard" className="mt-6 inline-block text-sm font-semibold text-orange-600">← Back to dashboard</Link>
+  </main>;
 }
