@@ -36,10 +36,10 @@ export function JobSearchHero() {
           Your career starts here
         </span>
         <h1 className="mt-7 text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
-          All the jobs. <span className="text-[#ffac62]">One place.</span>
+          Your next internship. <span className="text-[#ffac62]">Matched to you.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg">
-          Search, build your CV, and apply with AI on your side.
+          Build your skills-based CV, discover internships from verified employers and track every application — all in one place.
         </p>
 
         <form
