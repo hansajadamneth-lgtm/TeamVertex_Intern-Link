@@ -136,8 +136,8 @@ const createCompany = async (req, res, next) => {
 
     // 3. Check for duplicate company name
     const existingName = await Company.findOne({
-      name: { $regex: "^" + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, "\\name: { $regex: `^${trimmedName}$`, $options: "i" },") + "$", $options: "i" },
-    });
+      name: trimmedName,
+    }).collation({ locale: "en", strength: 2 });
     if (existingName) {
       return res.status(409).json({
         success: false,
