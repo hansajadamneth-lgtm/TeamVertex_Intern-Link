@@ -97,6 +97,10 @@ export default async function AdminLayout({
               <span>▥</span>
               Reports
             </Link>
+
+            <Link href="/admin/contact-messages" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10">
+              <span>✉</span> Contact inbox
+            </Link>
           </div>
         </nav>
 
