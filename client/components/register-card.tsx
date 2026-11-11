@@ -193,6 +193,8 @@ export function RegisterCard() {
                 <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="password"
+                minLength={10}
+                maxLength={128}
                   type={showPassword ? "text" : "password"}
                   placeholder="Create password"
                   className="h-11 rounded-xl pl-10 pr-10 text-sm text-gray-800 placeholder:text-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]/20"
@@ -224,6 +226,8 @@ export function RegisterCard() {
                 <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="confirmPassword"
+                  minLength={10}
+                  maxLength={128}
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm password"
                   className="h-11 rounded-xl pl-10 pr-10 text-sm text-gray-800 placeholder:text-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]/20"
