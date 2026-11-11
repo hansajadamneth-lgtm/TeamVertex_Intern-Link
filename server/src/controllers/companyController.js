@@ -19,14 +19,9 @@ const getCompanies = async (req, res, next) => {
 
     const query = {};
 
-    // 1. Status Filter (default to Verified for public view)
-    if (status) {
-      if (status !== "all") {
-        query.status = status;
-      }
-    } else {
-      query.status = "Verified";
-    }
+    // Public directory must never expose pending or suspended company records,
+    // regardless of user-controlled query parameters.
+    query.status = "Verified";
 
     // 2. Industry Filter
     if (industry && industry !== "All") {
@@ -36,7 +31,8 @@ const getCompanies = async (req, res, next) => {
     // 3. Search query across name, industry, location, description
     const searchTerm = search || keyword;
     if (searchTerm) {
-      const regex = { $regex: String(searchTerm).trim(), $options: "i" };
+      const escaped = String(searchTerm).trim().slice(0, 80).replace(/[.*+?^${}()|[\]\\]/g, "\\const regex = { $regex: String(searchTerm).trim(), $options: "i" };");
+      const regex = { $regex: escaped, $options: "i" };
       query.$or = [
         { name: regex },
         { industry: regex },
@@ -55,7 +51,7 @@ const getCompanies = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
-      .populate("owner", "fullName email");
+      .populate("owner", "fullName");
 
     return res.status(200).json({
       success: true,
@@ -82,14 +78,11 @@ const getCompanyById = async (req, res, next) => {
   try {
     const company = await Company.findById(req.params.id).populate(
       "owner",
-      "fullName email"
+      "fullName"
     );
 
-    if (!company) {
-      return res.status(404).json({
-        success: false,
-        message: `Company not found with identifier: ${req.params.id}`,
-      });
+    if (!company || company.status !== "Verified") {
+      return res.status(404).json({ success: false, message: "Verified company not found." });
     }
 
     return res.status(200).json({
