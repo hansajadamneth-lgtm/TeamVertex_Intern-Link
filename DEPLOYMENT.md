@@ -10,8 +10,8 @@ Sign in at https://dashboard.render.com and connect GitHub. Two supported method
 - New > **Web Service** > repository `hansajadamneth-lgtm/TeamVertex_Intern-Link`
 - **Branch**: `feature/internlink-proposal-completion`
 - **Language**: Node
-- **Root Directory**: leave blank (the root contains the npm workspaces and package-lock)
-- **Build Command**: `npm ci`
+- **Root Directory**: leave blank (the root contains the npm workspaces)
+- **Build Command**: `npm install` (the branch currently has no root `package-lock.json`; use `npm ci` only after committing a root lockfile)
 - **Start Command**: `npm run start --workspace=server`
 - **Health Check Path**: `/api/health`
 - Choose a suitable region/plan (the free plan may sleep when inactive)
