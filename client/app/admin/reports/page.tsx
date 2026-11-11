@@ -1,12 +1,73 @@
-import Link from "next/link";
+"use client";
 
-const summary = [
-  ["Total Applications", "110", "+12.5%"],
-  ["Total Companies", "82", "+8.2%"],
-  ["Total Internships", "42", "+5.4%"],
-  ["Total Students", "2,450", "+15.8%"],
-];
-
+import { useEffect, useState } from "react";
+type Report = {
+  summary: { totalApplications: number; totalCompanies: number; totalInternships: number; totalStudents: number };
+  jobsByStatus: Record<string, number>; jobsByCategory: Record<string, number>;
+  applicationsByStatus: Record<string, number>;
+};
 export default function ReportsPage() {
-  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-6 lg:p-8"><header className="flex items-center justify-between"><div><h1 className="text-2xl font-semibold text-gray-800">Reports</h1><p className="mt-1 text-sm text-gray-500">Platform performance and recruitment analytics.</p></div><button type="button" className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700">Export report</button></header><div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{summary.map(([label, value, change]) => <div key={label} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]"><p className="text-sm text-gray-500">{label}</p><div className="mt-3 flex items-end justify-between"><h2 className="text-2xl font-bold text-gray-800">{value}</h2><span className="text-xs font-semibold text-green-600">{change}</span></div></div>)}</div><div className="mt-6 grid gap-6 xl:grid-cols-2"><section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]"><h2 className="font-semibold text-gray-800">Internship Posts by Status</h2><div className="mt-8 flex h-48 items-end justify-around gap-5 border-b border-l px-5">{[120, 90, 65, 35].map((height, index) => <div key={height} className="flex w-12 flex-col justify-end text-center text-xs text-gray-400"><div className="rounded-t bg-orange-400" style={{ height }} /><span className="mt-2">{["Active", "Pending", "Closed", "Draft"][index]}</span></div>)}</div></section><section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]"><h2 className="font-semibold text-gray-800">Applications by Source</h2><div className="mt-8 flex items-center justify-center"><div className="flex h-40 w-40 items-center justify-center rounded-full" style={{ background: "conic-gradient(#ff7a00 0 42%, #596170 42% 72%, #4cc9f0 72% 90%, #ff9b9b 90% 100%)" }}><div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-2xl font-bold text-gray-800">110</div></div></div></section></div><Link href="/admin/dashboard" className="mt-5 inline-block text-sm text-orange-500 hover:underline">Back to dashboard</Link></main>;
+  const [data, setData] = useState<Report | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    fetch("/api/admin/reports", { cache: "no-store" }).then(async r=>{
+      const j = await r.json();
+      if (!r.ok || !j.success) throw new Error(j.message || "Unable to load reports.");
+      return j.data as Report;
+    }).then(setData).catch((e: Error)=>setError(e.message));
+  }, []);
+
+  function exportCsv() {
+    if (!data) return;
+    const rows: string[][] = [["Category","Metric","Count"]];
+    for (const [key,n] of Object.entries(data.summary)) rows.push(["Summary",key,String(n)]);
+    for (const [type,record] of Object.entries({
+      "Jobs by status":data.jobsByStatus, "Jobs by category":data.jobsByCategory,
+      "Applications by status":data.applicationsByStatus,
+    })) for (const [key,n] of Object.entries(record || {})) rows.push([type,key,String(n)]);
+    const csv = rows.map(row=>row.map(cell=>`"${cell.replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+    const link = document.createElement("a"); link.href=url; link.download="internlink-admin-report.csv";
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  }
+  const summary = data ? [
+    ["Total applications", data.summary.totalApplications],
+    ["Companies", data.summary.totalCompanies],
+    ["Internships", data.summary.totalInternships],
+    ["Students", data.summary.totalStudents],
+  ] as const : [];
+  const panels = data ? [
+    ["Internship statuses",data.jobsByStatus],
+    ["Internship categories",data.jobsByCategory],
+    ["Application statuses",data.applicationsByStatus],
+  ] as const : [];
+  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] p-5 text-[#17233b] sm:p-8">
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div><h1 className="text-3xl font-bold">Recruitment reports</h1>
+        <p className="mt-2 text-sm text-slate-500">Live aggregated statistics from InternLink data, not estimates.</p></div>
+      <button type="button" disabled={!data} onClick={exportCsv}
+        className="rounded-xl bg-[#0b1b3e] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">Export CSV</button>
+    </div>
+    {error && <p role="alert" className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+    {!error && !data && <p className="mt-6 text-sm">Loading live reports...</p>}
+    {data && <>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {summary.map(([label,value])=><div key={label} className="rounded-2xl border bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-500">{label}</p><p className="mt-3 text-3xl font-bold">{value.toLocaleString()}</p>
+        </div>)}
+      </div>
+      <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        {panels.map(([title,record])=><section key={title} className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <div className="mt-5 space-y-4">{Object.entries(record || {}).map(([label,count])=>{
+            const highest=Math.max(1,...Object.values(record || {}));
+            return <div key={label}>
+              <div className="flex justify-between gap-3 text-sm"><span>{label}</span><span className="font-semibold">{count}</span></div>
+              <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#ff7417]" style={{width:`${Math.round(100*count/highest)}%`}}/></div>
+            </div>;
+          })}</div>
+        </section>)}
+      </div>
+    </>}
+  </main>;
 }
