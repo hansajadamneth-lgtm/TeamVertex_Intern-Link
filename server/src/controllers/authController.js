@@ -34,10 +34,10 @@ const registerUser = async (req, res, next) => {
       });
     }
 
-    if (typeof password !== "string" || password.length < 6) {
+    if (typeof password !== "string" || password.length < 10 || password.length > 128) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 6 characters.",
+        message: "Password must be between 10 and 128 characters.",
       });
     }
 
@@ -79,13 +79,12 @@ const registerUser = async (req, res, next) => {
     });
 
     // 6. Generate JWT token
-    const token = generateToken({ id: user._id.toString(), role: user.role });
+    const token = generateToken({ id: user._id.toString(), role: user.role, version: user.sessionVersion ?? 0 });
     setTokenCookie(res, token);
 
     return res.status(201).json({
       success: true,
       message: "Account created successfully!",
-      token,
       user: {
         id: user._id,
         fullName: user.fullName,
@@ -250,45 +249,41 @@ const updateMe = async (req, res, next) => {
 };
 
 /**
+ * @desc    Change signed-in password and revoke other sessions
+ * @route   POST /api/auth/change-password
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof currentPassword !== "string" || typeof newPassword !== "string" ||
+        newPassword.length < 10 || newPassword.length > 128 || currentPassword === newPassword) {
+      return res.status(400).json({ success: false, message: "Use a new password between 10 and 128 characters." });
+    }
+    const user = await User.findById(req.user._id).select("+password");
+    if (!user || !(await user.comparePassword(currentPassword))) {
+      return res.status(401).json({ success: false, message: "Current password is incorrect." });
+    }
+    user.password = newPassword;
+    user.sessionVersion = (user.sessionVersion ?? 0) + 1;
+    await user.save();
+    const token = generateToken({ id: user._id.toString(), role: user.role, version: user.sessionVersion });
+    setTokenCookie(res, token);
+    return res.json({ success: true, message: "Password updated. Other sessions have been signed out." });
+  } catch (error) { next(error); }
+};
+
+/**
  * @desc    Request password reset instructions
  * @route   POST /api/auth/forgot-password
  * @access  Public
  */
-const forgotPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide an email address.",
-      });
-    }
-
-    const normalizedEmail = String(email).trim().toLowerCase();
-
-    // Check if user exists
-    const user = await User.findOne({ email: normalizedEmail });
-
-    // Honest handling: Check if an external SMTP/email provider is configured
-    const hasEmailConfig = Boolean(process.env.SMTP_HOST || process.env.EMAIL_API_KEY);
-
-    if (!hasEmailConfig) {
-      return res.status(200).json({
-        success: true,
-        message: user
-          ? "Password reset request received. Reset instructions will be dispatched once the email service is configured."
-          : "If this email address is registered, password reset instructions will be processed.",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "If this email address is registered, password reset instructions have been dispatched.",
-    });
-  } catch (error) {
-    next(error);
-  }
+const forgotPassword = async (req, res) => {
+  // There is no configured email delivery in this build. Never pretend a
+  // reset email was sent, and never disclose whether an account exists.
+  return res.status(503).json({
+    success: false,
+    message: "Email password recovery is not configured. Sign in to change your password from Settings or contact the platform administrator.",
+  });
 };
 
 module.exports = {
@@ -296,5 +291,6 @@ module.exports = {
   loginUser,
   getMe,
   updateMe,
+  changePassword,
   forgotPassword,
 };
