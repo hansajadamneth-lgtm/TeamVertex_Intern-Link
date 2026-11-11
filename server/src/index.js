@@ -13,6 +13,7 @@ const applicationRoutes = require("./routes/applicationRoutes");
 const companyRoutes = require("./routes/companyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const employerRoutes = require("./routes/employerRoutes");
+const savedJobRoutes = require("./routes/savedJobRoutes");
 const cvRoutes = require("./routes/cvRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
@@ -92,6 +93,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/employer", employerRoutes);
+app.use("/api/saved-jobs", savedJobRoutes);
 app.use("/api/cvs", cvRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 
