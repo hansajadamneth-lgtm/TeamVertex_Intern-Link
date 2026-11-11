@@ -4,6 +4,8 @@ const {
   getStudents,
   updateStudentStatus,
   getReports,
+  getAdminCompanies,
+  getAdminJobs,
 } = require("../controllers/adminController");
 const { protect } = require("../middleware/authMiddleware");
 const { authorize } = require("../middleware/roleMiddleware");
@@ -15,6 +17,8 @@ router.use(protect);
 router.use(authorize("admin"));
 
 router.get("/stats", getAdminStats);
+router.get("/companies", getAdminCompanies);
+router.get("/jobs", getAdminJobs);
 router.get("/students", getStudents);
 router.patch("/students/:id/status", updateStudentStatus);
 router.get("/reports", getReports);
