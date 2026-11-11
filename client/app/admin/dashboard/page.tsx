@@ -1,319 +1,64 @@
+"use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const stats = [
-  {
-    title: "Total Users",
-    value: "2,450",
-    change: "+12.5%",
-    href: "/admin/students",
-  },
-  {
-    title: "Active Jobs",
-    value: "135",
-    change: "+8.2%",
-    href: "/admin/internship-posts",
-  },
-  {
-    title: "Companies",
-    value: "82",
-    change: "+5.4%",
-    href: "/admin/companies",
-  },
-  {
-    title: "Applications",
-    value: "4,650",
-    change: "+15.8%",
-    href: "/applications",
-  },
-];
-
-const recentJobs = [
-  {
-    title: "Software Engineering Intern",
-    company: "ABC Technologies",
-    status: "Active",
-    date: "20 Jul 2026",
-  },
-  {
-    title: "UI/UX Design Intern",
-    company: "DesignHub",
-    status: "Pending",
-    date: "18 Jul 2026",
-  },
-  {
-    title: "Marketing Intern",
-    company: "MarketBridge",
-    status: "Active",
-    date: "16 Jul 2026",
-  },
-  {
-    title: "Data Science Intern",
-    company: "InnovateX Labs",
-    status: "Closed",
-    date: "14 Jul 2026",
-  },
-];
-
-const recentUsers = [
-  {
-    name: "John Perera",
-    email: "john@example.com",
-    type: "Student",
-  },
-  {
-    name: "Sarah Fernando",
-    email: "sarah@example.com",
-    type: "Student",
-  },
-  {
-    name: "Tech Solutions",
-    email: "contact@tech.lk",
-    type: "Company",
-  },
-  {
-    name: "DesignHub",
-    email: "hello@designhub.lk",
-    type: "Company",
-  },
-];
+type Stats = {
+  summary: { totalUsers: number; activeJobs: number; totalCompanies: number; totalApplications: number;
+    totalStudents: number; totalEmployers: number; pendingCompanies: number; verifiedCompanies: number };
+  recentJobs: { _id: string; title: string; companyName: string; status: string; createdAt: string }[];
+  recentUsers: { _id: string; fullName: string; email: string; role: string }[];
+};
 
 export default function AdminDashboardPage() {
-  return (
-    <div className="il-page-enter min-h-screen bg-[#f6f8fc]">
-      {/* Top bar */}
-     {/* Top bar */}
-<header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
-  {/* Left side */}
-  <div className="flex items-center gap-4">
-    <button className="text-2xl text-gray-700">
-      ☰
-    </button>
+  const [data, setData] = useState<Stats | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    fetch("/api/admin/stats", { cache: "no-store" })
+      .then(async response => { const j = await response.json(); if (!response.ok || !j.success) throw new Error(j.message || "Dashboard unavailable."); return j.data as Stats; })
+      .then(setData).catch((e: Error) => setError(e.message));
+  }, []);
 
-    <h1 className="text-xl font-semibold text-gray-800">
-      Dashboard
-    </h1>
-  </div>
+  const cards = data ? [
+    { title: "Registered users", value: data.summary.totalUsers, href: "/admin/students", detail: `${data.summary.totalStudents} students · ${data.summary.totalEmployers} employers` },
+    { title: "Active internships", value: data.summary.activeJobs, href: "/admin/internship-posts", detail: "Verified employers only" },
+    { title: "Companies", value: data.summary.totalCompanies, href: "/admin/companies", detail: `${data.summary.pendingCompanies} pending verification` },
+    { title: "Applications", value: data.summary.totalApplications, href: "/admin/reports", detail: "Submitted applications" },
+  ] : [];
 
-  {/* Right side */}
-  <div className="flex items-center gap-5">
-    {/* Search */}
-    <div className="flex h-10 w-56 items-center rounded-full border border-gray-200 bg-white px-4">
-      <span className="mr-2 text-gray-400">
-        ⌕
-      </span>
-
-      <input
-        type="text"
-        placeholder="Search"
-        className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
-      />
+  return <div className="il-page-enter min-h-screen bg-[#f6f8fc] p-5 text-[#17233b] sm:p-8">
+    <div className="rounded-3xl bg-[#0b1b3e] p-7 text-white">
+      <p className="text-sm font-medium text-orange-200">InternLink administration</p>
+      <h1 className="mt-2 text-3xl font-bold">Platform overview</h1>
+      <p className="mt-2 text-sm text-slate-300">Live statistics from MongoDB · {new Date().toLocaleDateString()}</p>
     </div>
-
-    {/* Notification */}
-    <button className="text-xl text-gray-700">
-      🔔
-    </button>
-
-    {/* Profile */}
-    <div className="flex items-center gap-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100">
-        👤
+    {error && <p role="alert" className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in as admin</Link></p>}
+    {!data && !error && <p className="mt-6 text-sm">Loading live dashboard...</p>}
+    {data && <>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map(card => <Link href={card.href} key={card.title} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition hover:border-orange-300 hover:shadow-md">
+          <p className="text-sm font-medium text-slate-500">{card.title}</p>
+          <p className="mt-3 text-3xl font-bold">{card.value.toLocaleString()}</p>
+          <p className="mt-2 text-xs text-slate-500">{card.detail}</p>
+        </Link>)}
       </div>
-
-      <div className="text-xs">
-        <p className="font-semibold text-gray-800">
-          Name
-        </p>
-
-        <p className="text-gray-500">
-          Email Address
-        </p>
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <section className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold">Recent internships</h2>
+          <div className="mt-4 space-y-3">{data.recentJobs.length ? data.recentJobs.map(job =>
+            <div key={job._id} className="flex flex-wrap items-start justify-between gap-3 border-b pb-3 text-sm">
+              <div><p className="font-semibold">{job.title}</p><p className="text-slate-500">{job.companyName}</p></div>
+              <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">{job.status}</span>
+            </div>) : <p className="text-sm text-slate-500">No internships posted yet.</p>}</div>
+        </section>
+        <section className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold">Recent accounts</h2>
+          <div className="mt-4 space-y-3">{data.recentUsers.length ? data.recentUsers.map(user =>
+            <div key={user._id} className="flex items-center justify-between gap-3 border-b pb-3 text-sm">
+              <div><p className="font-semibold">{user.fullName}</p><p className="text-slate-500">{user.email}</p></div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{user.role}</span>
+            </div>) : <p className="text-sm text-slate-500">No user accounts yet.</p>}</div>
+        </section>
       </div>
-    </div>
-  </div>
-</header>
-
-      {/* Dashboard content */}
-      <section className="p-6">
-        {/* Welcome banner */}
-        <div className="mb-6 rounded-xl bg-[#596170] p-6 text-white">
-          <h2 className="text-2xl font-semibold">
-            Welcome back!
-          </h2>
-
-          <p className="mt-2 text-sm text-gray-200">
-            Here&apos;s what&apos;s happening with your platform today.
-          </p>
-
-          <p className="mt-4 text-xs text-gray-300">
-            15 Jul 2026, Wednesday
-          </p>
-        </div>
-
-        {/* Statistics */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat) => (
-            <Link
-              key={stat.title}
-              href={stat.href}
-              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]"
-            >
-              <p className="text-sm text-gray-500">
-                {stat.title}
-              </p>
-
-              <div className="mt-3 flex items-end justify-between">
-                <p className="text-2xl font-bold text-gray-800">
-                  {stat.value}
-                </p>
-
-                <span className="text-xs font-semibold text-green-600">
-                  {stat.change}
-                </span>
-              </div>
-              </Link>
-          ))}
-        </div>
-
-        {/* Main dashboard sections */}
-        <div className="mt-6 grid gap-6 xl:grid-cols-2">
-          {/* Recent Jobs */}
-          <div id="reports" className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">
-                Recent Job Posts
-              </h2>
-
-              <Link href="/admin/internship-posts" className="text-xs font-semibold text-orange-500">
-                View All
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b text-xs text-gray-500">
-                    <th className="pb-3">Job Title</th>
-                    <th className="pb-3">Company</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3">Date</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {recentJobs.map((job) => (
-                    <tr
-                      key={job.title}
-                      className="border-b last:border-0"
-                    >
-                      <td className="py-3 font-medium text-gray-700">
-                        {job.title}
-                      </td>
-
-                      <td className="py-3 text-gray-500">
-                        {job.company}
-                      </td>
-
-                      <td className="py-3">
-                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
-                          {job.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3 text-gray-500">
-                        {job.date}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* User Growth */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">
-                User Growth
-              </h2>
-
-              <select className="rounded border px-2 py-1 text-xs">
-                <option>Year</option>
-                <option>Month</option>
-              </select>
-            </div>
-
-            <div className="mt-8 flex h-48 items-end justify-between gap-3 border-b border-l px-4 pb-2">
-              {[45, 70, 50, 85, 65, 95, 75, 110, 80, 125, 90, 145].map(
-                (height, index) => (
-                  <div
-                    key={index}
-                    className="w-full rounded-t bg-orange-400"
-                    style={{ height: `${height}px` }}
-                  />
-                )
-              )}
-            </div>
-
-            <div className="mt-2 flex justify-between text-xs text-gray-400">
-              <span>Jan</span>
-              <span>Mar</span>
-              <span>May</span>
-              <span>Jul</span>
-              <span>Sep</span>
-              <span>Nov</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Users */}
-        <div id="users" className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-800">
-              Recent Users
-            </h2>
-
-            <Link href="/admin/students" className="text-xs font-semibold text-orange-500">
-              View All
-            </Link>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b text-xs text-gray-500">
-                  <th className="pb-3">Name</th>
-                  <th className="pb-3">Email</th>
-                  <th className="pb-3">Type</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {recentUsers.map((user) => (
-                  <tr
-                    key={user.email}
-                    className="border-b last:border-0"
-                  >
-                    <td className="py-3 font-medium text-gray-700">
-                      {user.name}
-                    </td>
-
-                    <td className="py-3 text-gray-500">
-                      {user.email}
-                    </td>
-
-                    <td className="py-3">
-                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
-                        {user.type}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
+    </>}
+  </div>;
 }
