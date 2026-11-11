@@ -41,7 +41,10 @@ const getJobs = async (req, res, next) => {
 
     // 4. Location Filter
     if (location) {
-      query.location = { $regex: String(location).trim(), $options: "i" };
+      const meta = new Set(["\\", ".", "*", "+", "?", "^", "$", "{", "}", "(", ")", "|", "[", "]"]);
+      const safeLocation = [...String(location).trim().slice(0, 80)]
+        .map(character => meta.has(character) ? "\\" + character : character).join("");
+      query.location = { $regex: safeLocation, $options: "i" };
     }
 
     // 5. Keyword / Search Query across title, company, description, and skills
