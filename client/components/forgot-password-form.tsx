@@ -1,108 +1,52 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Mail, ArrowRight } from "lucide-react";
-
+import { useState } from "react";
+import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(""); setLoading(true);
     try {
       const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Unable to send reset email.");
-        return;
-      }
-
-      setSuccess("A verification code has been sent to your email.");
-      setEmail("");
-    } catch (err) {
-      console.error("Forgot password error:", err);
-      setError("Unable to connect to the server. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
+      const result = await response.json();
+      setError(result.message || "Automatic password recovery is not currently available.");
+    } catch {
+      setError("Password recovery is currently unavailable. Please contact the platform administrator.");
+    } finally { setLoading(false); }
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <h2 className="text-2xl font-bold">Forgot Password?</h2>
-        <p className="text-sm text-gray-500">
-          Enter your registered email to receive a reset code.
-        </p>
+        <h2 className="text-2xl font-bold">Password assistance</h2>
+        <p className="text-sm text-gray-600">Email recovery is not yet configured. If you are signed in, change your password in Account Settings instead.</p>
       </CardHeader>
-
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="forgot-email">Email Address</Label>
-
+            <Label htmlFor="forgot-email">Account email</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-
-              <Input
-                id="forgot-email"
-                type="email"
-                placeholder="Enter your email address"
-                className="pl-10"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="forgot-email" type="email" required className="pl-10" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" />
             </div>
           </div>
-
-          {error && (
-            <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="rounded-xl bg-green-50 p-3 text-sm text-green-600">
-              {success}
-            </div>
-          )}
-
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "Sending..." : "Send Reset Link"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-
-          <div className="text-center text-sm text-gray-500">
-            Remember your password?{" "}
-            <Link href="/login" className="font-medium text-il-orange hover:underline">
-              Sign in
-            </Link>
+          {error && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{error}</p>}
+          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Checking..." : "Check recovery availability"}</Button>
+          <div className="flex flex-wrap justify-between gap-3 text-sm">
+            <Link href="/settings" className="font-semibold text-orange-600 underline">Change password (signed in)</Link>
+            <Link href="/login" className="font-semibold text-orange-600 underline">Back to sign in</Link>
           </div>
         </form>
       </CardContent>
