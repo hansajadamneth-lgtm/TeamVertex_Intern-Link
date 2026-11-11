@@ -30,8 +30,12 @@ export async function forwardToBackend(
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
       const lower = key.toLowerCase();
-      // Forward relevant client headers but avoid forwarding host, connection, content-length
-      if (lower !== "host" && lower !== "connection" && lower !== "content-length") {
+      // Do not let callers spoof a reverse-proxy client IP or hop-by-hop headers.
+      const blocked = new Set(["host", "connection", "content-length", "transfer-encoding", "keep-alive",
+        "upgrade", "proxy-authorization", "proxy-authenticate", "forwarded", "via",
+        "x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip",
+        "cf-connecting-ip", "true-client-ip", "accept-encoding"]);
+      if (!blocked.has(lower)) {
         headers[key] = value;
       }
     });
@@ -60,10 +64,12 @@ export async function forwardToBackend(
       const lower = key.toLowerCase();
       if (lower === "set-cookie") {
         forwardHeaders.append(key, val);
-      } else if (!["content-encoding", "transfer-encoding"].includes(lower)) {
+      } else if (!["content-encoding", "content-length", "transfer-encoding", "connection"].includes(lower)) {
         forwardHeaders.set(key, val);
       }
     });
+
+    forwardHeaders.set("Cache-Control", "no-store");
 
     return new Response(responseData, {
       status: backendResponse.status,
