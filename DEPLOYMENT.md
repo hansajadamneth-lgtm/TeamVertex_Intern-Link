@@ -78,3 +78,7 @@ For a deployment test, use a fresh test account and avoid sharing credentials in
 - Render free service sleeping: first request can be slow. Check plan limitations.
 
 Never commit `.env` files or live credentials. Deploy the feature branch only, keeping `main` unchanged.
+
+## Triggering Vercel after changing Production Branch
+
+Vercel automatically creates a production deployment on new commits pushed to the tracked production branch. If the initial import was cancelled while it targeted `main`, configure Project Settings > Environments > Production > Branch Tracking to `feature/internlink-proposal-completion`, save it, and push a new commit to that feature branch. Check the Vercel Deployments tab to confirm the deployed branch and commit SHA. This step never requires editing or merging `main`.
