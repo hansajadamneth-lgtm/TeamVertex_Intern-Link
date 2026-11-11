@@ -43,6 +43,13 @@ const protect = async (req, res, next) => {
     // Fetch user from database excluding password
     const user = await User.findById(decoded.id).select("-password");
 
+    // Previously issued tokens become invalid after a password change.
+    if (user && (decoded.version ?? 0) !== (user.sessionVersion ?? 0)) {
+      return res.status(401).json({
+        success: false, message: "Your session has expired. Please log in again.",
+      });
+    }
+
     if (!user) {
       return res.status(401).json({
         success: false,
