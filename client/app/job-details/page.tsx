@@ -2,7 +2,7 @@
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Search, MapPin, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Search, MapPin, ArrowRight, CheckCircle2, Heart } from "lucide-react";
 type Job = { _id: string; title: string; companyName: string; location: string; category: string;
  type: string; duration: string; description: string; requirements: string; skills: string[];
  deadline?: string; salary?: string };
@@ -13,20 +13,41 @@ export default function JobsPage() {
  const [search,setSearch]=useState(""),[category,setCategory]=useState("All");
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [applying,setApplying]=useState(false);
+ const [saved,setSaved]=useState<string[]>([]);
+ const [savingJob,setSavingJob]=useState(false);
  useEffect(()=>{
   const run=async()=>{
-   try{const r=await fetch("/api/jobs",{cache:"no-store"}),j=await r.json();
+   try{const r=await fetch("/api/jobs?limit=50",{cache:"no-store"}),j=await r.json();
     if(!r.ok||!j.success)throw new Error(j.message||"Could not load internships.");
     const list:Job[]=j.data||[];setJobs(list);
-    const target=new URLSearchParams(window.location.search).get("job");
+    const params=new URLSearchParams(window.location.search);
+    const target=params.get("job");
+    setSearch(params.get("query")||"");
     setSelected(list.find(x=>x._id===target)?target||"":list[0]?._id||"");
    }catch(e){setError(e instanceof Error?e.message:"Unable to load jobs.");}
    finally{setLoading(false);}
   };run();
+  fetch("/api/saved-jobs",{cache:"no-store"}).then(async r=>r.ok?r.json():null)
+    .then(j=>{if(j?.success)setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id).filter(Boolean));})
+    .catch(()=>{});
  },[]);
  const filtered=jobs.filter(j=>(category==="All"||j.category===category)&&
   [j.title,j.companyName,j.location,...(j.skills||[])].join(" ").toLowerCase().includes(search.toLowerCase()));
  const job=filtered.find(j=>j._id===selected)||filtered[0];
+ const toggleSave=async()=>{
+  if(!job)return;setSavingJob(true);setError("");setNotice("");
+  const isSaved=saved.includes(job._id);
+  try{
+   const r=await fetch(isSaved?"/api/saved-jobs/"+encodeURIComponent(job._id):"/api/saved-jobs",{
+    method:isSaved?"DELETE":"POST",...(isSaved?{}:{headers:{"Content-Type":"application/json"},body:JSON.stringify({jobId:job._id})}),
+   });
+   const j=await r.json();
+   if(!r.ok||!j.success)throw new Error(j.message||"Could not update saved internships.");
+   setSaved(current=>isSaved?current.filter(id=>id!==job._id):[...current,job._id]);
+   setNotice(isSaved?"Removed from saved internships.":"Saved! View it in Saved Jobs.");
+  }catch(e){setError((e instanceof Error?e.message:"Unable to save.")+" Sign in as a student if needed.");}
+  finally{setSavingJob(false);}
+ };
  const apply=async()=>{
   if(!job)return;setApplying(true);setError("");setNotice("");
   try{
@@ -69,6 +90,10 @@ export default function JobsPage() {
      {job.deadline&&<p className="mt-2 text-sm">Deadline: {new Date(job.deadline).toLocaleDateString()}</p>}
      <button disabled={applying} onClick={apply} className="mt-6 w-full rounded-xl bg-[#ff7417] py-3 font-semibold text-white disabled:opacity-50">
        {applying?"Submitting...":"Apply for this internship"} <ArrowRight size={16} className="ml-2 inline"/></button>
+     <button type="button" disabled={savingJob} onClick={toggleSave} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-5 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-50 disabled:opacity-50">
+       <Heart size={17} fill={saved.includes(job._id)?"currentColor":"none"}/>
+       {savingJob?"Updating...":saved.includes(job._id)?"Remove from saved jobs":"Save internship"}
+     </button>
      <h3 className="mt-7 border-b pb-2 text-lg font-semibold">Description</h3>
      <p className="mt-3 whitespace-pre-wrap text-sm leading-7">{job.description}</p>
      <h3 className="mt-6 border-b pb-2 text-lg font-semibold">Requirements</h3>
