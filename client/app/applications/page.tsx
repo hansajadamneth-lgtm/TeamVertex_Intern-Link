@@ -1,20 +1,32 @@
 "use client";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 type Application={_id:string;companyName?:string;position?:string;createdAt:string;fitScore:number;
  status:string;job?:{title?:string};};
 export default function ApplicationsPage(){
  const [items,setItems]=useState<Application[]>([]),[error,setError]=useState(""),[loading,setLoading]=useState(true);
- useEffect(()=>{fetch("/api/applications/me",{cache:"no-store"}).then(async r=>{
-  const j=await r.json();if(!r.ok||!j.success)throw new Error(j.message||"Unable to load your applications.");
-  setItems(j.data||[]);
- }).catch((e:Error)=>setError(e.message)).finally(()=>setLoading(false));},[]);
+ const [refreshing, setRefreshing] = useState(false);
+ const loadApplications = useCallback(async () => {
+   const response = await fetch("/api/applications/me", { cache: "no-store" });
+   const payload = await response.json();
+   if (!response.ok || !payload.success) throw new Error(payload.message || "Unable to load your applications.");
+   setItems(payload.data || []);
+   setError("");
+ }, []);
+ useEffect(() => { loadApplications().catch((e: Error) => setError(e.message)).finally(() => setLoading(false)); }, [loadApplications]);
+ async function refresh() {
+   setRefreshing(true);
+   try { await loadApplications(); }
+   catch(e) { setError(e instanceof Error ? e.message : "Unable to refresh applications."); }
+   finally { setRefreshing(false); }
+ }
  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]"><header className="bg-[#0b142b] p-5 text-white">
   <nav className="mx-auto flex max-w-5xl justify-between"><Link href="/home" className="font-bold">InternLink</Link>
    <Link href="/job-details" className="text-sm">Find internships</Link></nav></header>
   <section className="mx-auto max-w-5xl px-5 py-10">
-   <h1 className="text-3xl font-bold">My applications</h1>
+   <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl font-bold">My applications</h1>
+   <button type="button" onClick={refresh} disabled={refreshing || loading} className="rounded-xl border border-orange-200 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 hover:bg-orange-50 disabled:opacity-50">{refreshing ? "Refreshing..." : "Refresh statuses"}</button></div>
    <p className="mt-2 text-sm text-slate-500">Status updates from employers appear here when your application record changes.</p>
    {loading&&<p className="mt-6">Loading applications...</p>}
    {error&&<p role="alert" className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
