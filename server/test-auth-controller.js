@@ -68,7 +68,7 @@ async function runTests() {
   });
 
   // 2. Short password in registration
-  await test("registerUser rejects password shorter than 6 characters with 400", async () => {
+  await test("registerUser rejects password shorter than 10 characters with 400", async () => {
     const req = { body: { fullName: "Test User", email: "test@example.com", password: "123" } };
     const res = createMockRes();
 
@@ -76,7 +76,7 @@ async function runTests() {
 
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(res.body.success, false);
-    assert.ok(res.body.message.includes("at least 6 characters"));
+    assert.ok(res.body.message.includes("between 10 and 128 characters"));
   });
 
   // 3. Admin role registration rejection
@@ -327,7 +327,7 @@ async function runTests() {
 
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.body.success, true);
-      assert.strictEqual(typeof res.body.token, "string");
+      assert.strictEqual(res.body.token, undefined);
       assert.strictEqual(res.body.user.fullName, "Hansaja Damneth");
       assert.strictEqual(res.body.user.email, "hansaja@example.com");
       assert.strictEqual(res.body.user.role, "student");
@@ -373,35 +373,15 @@ async function runTests() {
     assert.strictEqual(res.body.success, false);
   });
 
-  // 15. forgotPassword validation & safe response
-  await test("forgotPassword rejects empty email with 400", async () => {
-    const req = { body: {} };
+  // 15. No mail provider is configured; refuse to claim a reset was sent.
+  await test("forgotPassword returns clear 503 without exposing an account", async () => {
     const res = createMockRes();
-
-    await forgotPassword(req, res, () => {});
-
-    assert.strictEqual(res.statusCode, 400);
+    await forgotPassword({ body: { email: "user@example.com" } }, res, () => {});
+    assert.strictEqual(res.statusCode, 503);
     assert.strictEqual(res.body.success, false);
-  });
-
-  await test("forgotPassword returns 200 without exposing tokens or secrets", async () => {
-    const origFindOne = User.findOne;
-    User.findOne = async () => ({ _id: "user_found" });
-
-    try {
-      const req = { body: { email: "user@example.com" } };
-      const res = createMockRes();
-
-      await forgotPassword(req, res, () => {});
-
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(res.body.success, true);
-      assert.strictEqual(res.body.token, undefined);
-      assert.strictEqual(res.body.resetToken, undefined);
-      assert.ok(res.body.message.includes("Password reset request received"));
-    } finally {
-      User.findOne = origFindOne;
-    }
+    assert.strictEqual(res.body.token, undefined);
+    assert.strictEqual(res.body.resetToken, undefined);
+    assert.ok(res.body.message.includes("not configured"));
   });
 
   // 16. Verify router has registered endpoints
