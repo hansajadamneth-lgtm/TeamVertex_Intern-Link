@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
+const { rateLimit } = require("express-rate-limit");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -15,6 +17,15 @@ const recommendationRoutes = require("./routes/recommendationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
+app.disable("x-powered-by");
+app.use(helmet());
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 25,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { success: false, message: "Too many attempts. Please try again in 15 minutes." },
+});
 
 // Core middleware
 const allowedOrigins = process.env.CLIENT_URL
@@ -32,9 +43,25 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use(cookieParser());
+// Authenticated mutations require the expected website Origin. A cross-site
+// request must not be allowed to spend an HTTP-only authentication cookie.
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method) || !req.cookies?.token) return next();
+  if (req.get("sec-fetch-site") === "cross-site") {
+    return res.status(403).json({ success: false, message: "Cross-site requests are not permitted." });
+  }
+  const origin = req.get("origin");
+  if (origin && !allowedOrigins.includes(origin) && process.env.NODE_ENV === "production") {
+    return res.status(403).json({ success: false, message: "Request origin not permitted." });
+  }
+  next();
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
 
 // Database connection
 connectDB().catch((err) => {
