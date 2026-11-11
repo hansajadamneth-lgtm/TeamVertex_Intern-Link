@@ -26,7 +26,8 @@ const getJobs = async (req, res, next) => {
     // Public catalog is restricted to active, unexpired verified-company listings.
     // Never honor client-supplied status=all on unauthenticated endpoints.
     query.status = "Active";
-    query.$or = [{ deadline: null }, { deadline: { $gte: new Date() } }];
+    // Use AND so a keyword search cannot bypass the expiry restriction.
+    query.$and = [{ $or: [{ deadline: null }, { deadline: { $gte: new Date() } }] }];
 
     // 2. Category Filter
     if (category && category !== "All") {
@@ -46,7 +47,11 @@ const getJobs = async (req, res, next) => {
     // 5. Keyword / Search Query across title, company, description, and skills
     const searchTerm = search || keyword;
     if (searchTerm) {
-      const regex = { $regex: String(searchTerm).trim(), $options: "i" };
+      const meta = new Set(["\\", ".", "*", "+", "?", "^", "$", "{", "}", "(", ")", "|", "[", "]"]);
+      const safeTerm = [...String(searchTerm).trim().slice(0, 80)]
+        .map((character) => meta.has(character) ? "\\" + character : character)
+        .join("");
+      const regex = { $regex: safeTerm, $options: "i" };
       query.$or = [
         { title: regex },
         { companyName: regex },
@@ -76,7 +81,7 @@ const getJobs = async (req, res, next) => {
       .skip(skip)
       .limit(limitNum)
       .populate("company", "name industry website location status")
-      .populate("postedBy", "fullName email role");
+      .populate("postedBy", "fullName role");
 
     return res.status(200).json({
       success: true,
@@ -103,7 +108,7 @@ const getJobById = async (req, res, next) => {
   try {
     const job = await Job.findById(req.params.id)
       .populate("company", "name industry website location status description")
-      .populate("postedBy", "fullName email");
+      .populate("postedBy", "fullName");
 
     if (!job) {
       return res.status(404).json({
@@ -112,7 +117,7 @@ const getJobById = async (req, res, next) => {
       });
     }
 
-    if (job.status !== "Active" || !job.company || job.company.status !== "Verified") {
+    if (job.status !== "Active" || (job.deadline && job.deadline < new Date()) || !job.company || job.company.status !== "Verified") {
       return res.status(404).json({ success: false, message: "Internship not available." });
     }
     return res.status(200).json({
