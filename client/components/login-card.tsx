@@ -85,11 +85,10 @@ export function LoginCard() {
 
       setSuccess("Login successful!");
 
-      console.log("Logged in user:", data.user);
-
-      setTimeout(() => {
-        router.push("/home");
-      }, 1000);
+      const destination = data.user?.role === "admin" ? "/admin/dashboard"
+        : data.user?.role === "employer" ? "/employer" : "/home";
+      router.replace(destination);
+      router.refresh();
     } catch (error) {
       console.error("Login error:", error);
 
@@ -218,17 +217,6 @@ export function LoginCard() {
 
             <div className="flex-grow border-t border-gray-200" />
           </div>
-
-          {/* Google */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full gap-2"
-            size="lg"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </Button>
 
           {/* Register */}
           <p className="text-center text-sm text-gray-500">
