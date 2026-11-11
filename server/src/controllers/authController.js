@@ -210,6 +210,46 @@ const getMe = async (req, res, next) => {
 };
 
 /**
+ * @desc    Update signed-in profile (safe editable fields only)
+ * @route   PUT /api/auth/me
+ * @access  Private
+ */
+const updateMe = async (req, res, next) => {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ success: false, message: "Authentication required." });
+
+    const { fullName, phone, location, education, bio, skills } = req.body || {};
+    const boundedText = (value, max) => typeof value === "string" && value.trim().length <= max;
+    if (
+      (fullName !== undefined && (!boundedText(fullName, 100) || fullName.trim().length < 2)) ||
+      (phone !== undefined && !boundedText(phone, 40)) ||
+      (location !== undefined && !boundedText(location, 120)) ||
+      (education !== undefined && !boundedText(education, 200)) ||
+      (bio !== undefined && !boundedText(bio, 1200)) ||
+      (skills !== undefined && (!Array.isArray(skills) || skills.length > 30 ||
+        !skills.every((skill) => typeof skill === "string" && skill.trim().length > 0 && skill.trim().length <= 60)))
+    ) {
+      return res.status(400).json({ success: false, message: "Invalid profile details or field length." });
+    }
+    for (const key of ["fullName", "phone", "location", "education", "bio"]) {
+      if (req.body[key] !== undefined) user[key] = req.body[key].trim();
+    }
+    if (skills !== undefined) user.skills = [...new Set(skills.map((skill) => skill.trim()))];
+    await user.save();
+    return res.json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: {
+        id: user._id, fullName: user.fullName, email: user.email, role: user.role,
+        phone: user.phone, location: user.location, education: user.education,
+        bio: user.bio, skills: user.skills, company: user.company, status: user.status,
+      },
+    });
+  } catch (error) { next(error); }
+};
+
+/**
  * @desc    Request password reset instructions
  * @route   POST /api/auth/forgot-password
  * @access  Public
@@ -255,5 +295,6 @@ module.exports = {
   registerUser,
   loginUser,
   getMe,
+  updateMe,
   forgotPassword,
 };
