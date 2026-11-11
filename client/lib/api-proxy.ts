@@ -25,6 +25,19 @@ export async function forwardToBackend(
 
   try {
     const url = new URL(request.url);
+    // All browser API calls must be same-origin. Next.js is the public boundary;
+    // Express is reached server-to-server and does not need a browser Origin.
+    // Prevent CSRF here instead of relying on Render's CLIENT_URL being exact.
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method.toUpperCase())) {
+      const origin = request.headers.get("origin");
+      const fetchSite = request.headers.get("sec-fetch-site");
+      if (fetchSite === "cross-site" || (origin && origin !== url.origin)) {
+        return NextResponse.json(
+          { success: false, message: "Request origin is not permitted." },
+          { status: 403, headers: { "Cache-Control": "no-store" } }
+        );
+      }
+    }
     const targetUrl = `${backendBase.replace(/\/$/, "")}${backendPath}${url.search}`;
 
     const headers: Record<string, string> = {};
@@ -34,7 +47,7 @@ export async function forwardToBackend(
       const blocked = new Set(["host", "connection", "content-length", "transfer-encoding", "keep-alive",
         "upgrade", "proxy-authorization", "proxy-authenticate", "forwarded", "via",
         "x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip",
-        "cf-connecting-ip", "true-client-ip", "accept-encoding"]);
+        "cf-connecting-ip", "true-client-ip", "accept-encoding", "origin"]);
       if (!blocked.has(lower)) {
         headers[key] = value;
       }
