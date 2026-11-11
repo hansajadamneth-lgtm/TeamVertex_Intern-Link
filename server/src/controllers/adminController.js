@@ -90,7 +90,10 @@ const getStudents = async (req, res, next) => {
     }
 
     if (search) {
-      const regex = { $regex: String(search).trim(), $options: "i" };
+      const meta = new Set(["\\", ".", "*", "+", "?", "^", "$", "{", "}", "(", ")", "|", "[", "]"]);
+      const safeSearch = [...String(search).trim().slice(0, 80)]
+        .map(character => meta.has(character) ? "\\" + character : character).join("");
+      const regex = { $regex: safeSearch, $options: "i" };
       query.$or = [
         { fullName: regex },
         { email: regex },
