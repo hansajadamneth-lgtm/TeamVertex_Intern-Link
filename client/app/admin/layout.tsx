@@ -17,7 +17,7 @@ export default async function AdminLayout({
   let authorized = false;
   let reachable = true;
   try {
-    const response = await fetch(`${backend.replace(/\\/$/, "")}/api/auth/me`, {
+    const response = await fetch(`${(backend.endsWith("/") ? backend.slice(0, -1) : backend)}/api/auth/me`, {
       headers: { Cookie: `token=${token}` }, cache: "no-store",
       signal: AbortSignal.timeout(25000),
     });
