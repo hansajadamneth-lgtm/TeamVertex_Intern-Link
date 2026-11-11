@@ -108,6 +108,11 @@ const createCompany = async (req, res, next) => {
     const trimmedName = (name || "").trim();
     const trimmedIndustry = (industry || "").trim();
     const trimmedEmail = (email || "").trim().toLowerCase();
+    const trimmedWebsite = String(website || "").trim();
+    const validWebsite = !trimmedWebsite || /^https?:\/\/[^\s]+$/i.test(trimmedWebsite);
+    if (!validWebsite || trimmedWebsite.length > 400) {
+      return res.status(400).json({ success: false, message: "Company website must be a valid http:// or https:// URL." });
+    }
 
     // 1. Validate required fields
     if (!trimmedName || !trimmedIndustry || !trimmedEmail) {
@@ -131,7 +136,7 @@ const createCompany = async (req, res, next) => {
 
     // 3. Check for duplicate company name
     const existingName = await Company.findOne({
-      name: { $regex: `^${trimmedName}$`, $options: "i" },
+      name: { $regex: "^" + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, "\\name: { $regex: `^${trimmedName}$`, $options: "i" },") + "$", $options: "i" },
     });
     if (existingName) {
       return res.status(409).json({
@@ -145,7 +150,7 @@ const createCompany = async (req, res, next) => {
       name: trimmedName,
       industry: trimmedIndustry,
       email: trimmedEmail,
-      website: (website || "").trim(),
+      website: trimmedWebsite,
       location: (location || "").trim(),
       description: (description || "").trim(),
       status: "Pending", // Must be verified by an admin
@@ -235,6 +240,11 @@ const updateCompany = async (req, res, next) => {
         success: false,
         message: "Not authorized. You can only update your own company profile.",
       });
+    }
+
+    if (req.body.website !== undefined && (typeof req.body.website !== "string" ||
+        (req.body.website.trim() && (!/^https?:\/\/[^\s]+$/i.test(req.body.website.trim()) || req.body.website.length > 400)))) {
+      return res.status(400).json({ success: false, message: "Company website must be a valid http:// or https:// URL." });
     }
 
     // Whitelist editable fields (prevent employers from self-verifying status or changing owner)
