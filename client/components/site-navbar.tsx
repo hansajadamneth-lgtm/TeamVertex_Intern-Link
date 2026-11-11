@@ -35,6 +35,7 @@ const ADMIN_LINKS: NavLink[] = [
   { label: "Companies", href: "/admin/companies" },
   { label: "Internship posts", href: "/admin/internship-posts" },
   { label: "Reports", href: "/admin/reports" },
+  { label: "Contact inbox", href: "/admin/contact-messages" },
 ];
 
 const GUEST_LINKS: NavLink[] = [
