@@ -63,7 +63,7 @@ export function RegisterCard() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<"student" | "employer">("student");
-  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -74,6 +74,11 @@ export function RegisterCard() {
 
     setError("");
     setSuccess("");
+
+    if (password.length < 10 || password.length > 128) {
+      setError("Password must be between 10 and 128 characters.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -371,16 +376,6 @@ export function RegisterCard() {
             <span className="mx-4 text-xs font-semibold text-gray-400">OR</span>
             <div className="flex-grow border-t border-gray-200" />
           </div>
-
-          {/* Google Sign Up */}
-          <Button
-            type="button"
-            variant="outline"
-            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)] hover:bg-gray-50"
-          >
-            <GoogleIcon />
-            <span>Sign up with Google</span>
-          </Button>
 
           {/* Sign in redirect link */}
           <p className="pt-1 text-center text-xs text-gray-600">
