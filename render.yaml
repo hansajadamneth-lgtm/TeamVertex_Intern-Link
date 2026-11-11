@@ -7,7 +7,7 @@ services:
     runtime: node
     branch: feature/internlink-proposal-completion
     plan: free
-    buildCommand: npm ci
+    buildCommand: npm install
     startCommand: npm run start --workspace=server
     healthCheckPath: /api/health
     autoDeployTrigger: commit
