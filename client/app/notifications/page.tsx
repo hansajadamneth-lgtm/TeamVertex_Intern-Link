@@ -1,36 +1,70 @@
-import { Card } from "@/components/ui/card";
+"use client";
+
 import Link from "next/link";
-import { Bell, CheckCircle2, FileText, MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, CheckCircle2, FileText } from "lucide-react";
 
-const notifications = [
-  { title: "Two applications were shortlisted", detail: "Your applications for Frontend Engineer and UI/UX Design Intern moved to review.", time: "2 hours ago", icon: CheckCircle2, color: "text-green-500" },
-  { title: "New job matching your profile", detail: "A Cloud Solutions Intern role at LSEG matches 72% of your skills.", time: "Yesterday", icon: Bell, color: "text-blue-500" },
-  { title: "Application successfully submitted", detail: "Your application for Data Analyst Intern was sent to Solvex.", time: "2 days ago", icon: FileText, color: "text-[#ff7417]" },
-  { title: "Complete your profile", detail: "Add your latest skills to improve recommendation accuracy.", time: "3 days ago", icon: MessageCircle, color: "text-purple-500" },
-];
-
+type Application = { _id: string; status: string; position?: string; companyName?: string; createdAt: string };
 export default function NotificationsPage() {
-  return (
-    <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]">
-      <Header />
-      <section className="mx-auto max-w-[900px] px-5 pb-20 pt-10 sm:px-10">
-        <div className="flex items-end justify-between">
-          <div><h1 className="text-2xl font-semibold">Updates &amp; Alerts</h1><p className="mt-1 text-sm text-[#7b8799]">Stay up to date with your applications and job recommendations.</p></div>
-          <button type="button" className="text-xs font-semibold text-[#356be8]">Mark all as read</button>
+  const [apps, setApps] = useState<Application[]>([]);
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState("");
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const [who, results] = await Promise.all([
+          fetch("/api/auth/me", { cache: "no-store" }), fetch("/api/applications/me", { cache: "no-store" }),
+        ]);
+        const [profile, data] = await Promise.all([who.json(), results.json()]);
+        if (!who.ok || !profile.success || !results.ok || !data.success) throw new Error(data.message || "Sign in as a student to view updates.");
+        if (!active) return;
+        const uid = profile.user.id as string;
+        setUserId(uid);
+        setApps(data.data || []);
+        try { setReadIds(JSON.parse(window.localStorage.getItem(`internlink-notifications-read-${uid}`) || "[]")); } catch { setReadIds([]); }
+      } catch (e) { if (active) setError(e instanceof Error ? e.message : "Unable to load updates."); }
+      finally { if (active) setLoading(false); }
+    }
+    load(); return () => { active = false; };
+  }, []);
+  const updates = apps.map(app => ({
+    id: `${app._id}:${app.status}`,
+    title: app.status === "Application sent" ? "Application submitted" : `Application: ${app.status}`,
+    description: `${app.position || "Internship"} at ${app.companyName || "Employer"} — ${app.status}`,
+    date: new Date(app.createdAt).toLocaleDateString(),
+    icon: app.status==="Accepted" ? CheckCircle2 : app.status==="Application sent" ? FileText : Bell,
+  }));
+  const unread = updates.filter(u => !readIds.includes(u.id)).length;
+  function markAllRead() {
+    const ids = updates.map(u=>u.id);
+    setReadIds(ids);
+    try { window.localStorage.setItem(`internlink-notifications-read-${userId}`, JSON.stringify(ids)); } catch {}
+  }
+  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-5 py-10 text-[#17233b]">
+    <section className="mx-auto max-w-4xl">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h1 className="flex items-center gap-2 text-3xl font-bold"><Bell className="text-orange-500"/> Application updates</h1>
+          <p className="mt-2 text-sm text-slate-500">Live updates based on your submitted internship applications.</p></div>
+        <button type="button" onClick={markAllRead} disabled={!updates.length || unread===0} className="rounded-xl border bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50">Mark all as read {unread>0?`(${unread})`:""}</button>
+      </div>
+      {loading && <p className="mt-7 text-sm">Loading updates...</p>}
+      {error && <p role="alert" className="mt-7 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
+      {!loading && !error && updates.length===0 && <div className="mt-7 rounded-2xl border bg-white p-8 text-center">
+        <Bell className="mx-auto h-8 w-8 text-slate-400"/><p className="mt-3 font-semibold">No application updates yet.</p>
+        <p className="mt-2 text-sm text-slate-500">Apply to an internship to track real employer responses here.</p>
+        <Link href="/job-details" className="mt-4 inline-block text-sm font-semibold text-orange-600">Find internships</Link></div>}
+      <div className="mt-7 space-y-3">{updates.map(u=> <article key={u.id} className={`flex gap-4 rounded-2xl border p-6 shadow-sm ${readIds.includes(u.id)?"bg-white":"border-orange-200 bg-orange-50/50"}`}>
+        <u.icon className="h-6 w-6 shrink-0 text-orange-600"/>
+        <div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2">
+          <h2 className="font-semibold">{u.title}</h2><span className="text-xs text-slate-500">{u.date}</span></div>
+          <p className="mt-1 text-sm text-slate-600">{u.description}</p>
+          <Link href="/applications" className="mt-3 inline-block text-xs font-semibold text-orange-600">View application</Link>
         </div>
-        <div className="mt-8 space-y-3">
-          {notifications.map(({ title, detail, time, icon: Icon, color }) => (
-            <Card key={title} className="flex gap-4 rounded-xl border border-[#dce3eb] bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
-              <Icon className={`mt-1 h-5 w-5 shrink-0 ${color}`} />
-              <div className="flex-1"><div className="flex justify-between gap-3"><h2 className="text-sm font-semibold">{title}</h2><time className="text-xs text-[#98a2b3]">{time}</time></div><p className="mt-1 text-sm text-[#667085]">{detail}</p></div>
-            </Card>
-          ))}
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function Header() {
-  return <header className="bg-[#0b142b] px-4 py-3 sm:px-8"><nav className="mx-auto flex max-w-[1120px] items-center justify-between"><Link href="/home" className="flex h-10 w-10 items-center justify-center overflow-hidden bg-white"><img src="/internlink-logo.png" alt="InternLink" className="h-full w-full object-contain" /></Link><div className="hidden items-center gap-2 text-xs text-white sm:flex"><Link href="/cover-letter" className="rounded-xl px-3 py-2 text-slate-300 hover:bg-white/10">AI Cover Letter</Link><Link href="/recommendations" className="rounded-xl px-3 py-2 text-slate-300 hover:bg-white/10">Recommendations</Link><Link href="/applications" className="rounded-xl px-3 py-2 text-slate-300 hover:bg-white/10">Applications</Link><Link href="/notifications" className="rounded-xl bg-[#ff7417] px-3 py-2 font-semibold">Notifications</Link></div><Link href="/login" className="rounded-full bg-[#ff7417] px-5 py-2 text-xs font-semibold uppercase text-white">Sign out</Link></nav></header>;
+      </article>)}</div>
+      {updates.length>0 && <p className="mt-5 text-xs text-slate-500">Read/unread preferences are saved on this browser. Application statuses come from your account.</p>}
+    </section>
+  </main>;
 }
