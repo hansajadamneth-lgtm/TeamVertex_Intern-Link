@@ -154,12 +154,11 @@ const createJob = async (req, res, next) => {
     } = req.body;
 
     const resolvedTitle = (title || jobTitle || "").trim();
-    const resolvedCompanyName = (companyName || "").trim();
     const resolvedLocation = (location || "").trim();
     const resolvedDescription = (description || "").trim();
 
     // 1. Validate required fields
-    if (!resolvedTitle || !resolvedCompanyName || !resolvedLocation || !resolvedDescription) {
+    if (!resolvedTitle || !resolvedLocation || !resolvedDescription) {
       return res.status(400).json({
         success: false,
         message: "Please provide title, companyName, location, and description.",
@@ -182,10 +181,10 @@ const createJob = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "A verified employer company is required before posting." });
     }
 
-    // 3. Security: Derive postedBy strictly from authenticated req.user
+    // 3. Security: Derive company name and postedBy from verified ownership
     const newJobData = {
       title: resolvedTitle,
-      companyName: resolvedCompanyName,
+      companyName: ownedCompany.name,
       company: ownedCompany._id,
       category: category || "IT",
       location: resolvedLocation,
@@ -243,7 +242,6 @@ const updateJob = async (req, res, next) => {
     // Whitelist allowed update fields (ignore any attempts to overwrite postedBy)
     const allowedFields = [
       "title",
-      "companyName",
       "category",
       "location",
       "type",
