@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -42,9 +43,14 @@ connectDB().catch((err) => {
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "InternLink backend is running",
+  const databaseConnected = mongoose.connection.readyState === 1;
+  res.set("Cache-Control", "no-store");
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? "ok" : "degraded",
+    message: databaseConnected
+      ? "InternLink API and MongoDB are connected"
+      : "InternLink API is running but MongoDB is not connected",
+    database: databaseConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });
 });
