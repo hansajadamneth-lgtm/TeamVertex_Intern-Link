@@ -13,7 +13,7 @@ const setTokenCookie = (res, token) => {
     // A site-wide cookie path is required for /api/cvs, /api/jobs and other endpoints.
     sameSite: "lax",
     path: "/",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 
@@ -26,6 +26,7 @@ const registerUser = async (req, res, next) => {
   try {
     const { fullName, email, password, role } = req.body || {};
 
+    res.set("Cache-Control", "no-store");
     // 1. Validate required fields
     if (!fullName || !email || !password) {
       return res.status(400).json({
@@ -109,6 +110,7 @@ const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
 
+    res.set("Cache-Control", "no-store");
     // 1. Validate inputs
     if (!email || !password) {
       return res.status(400).json({
