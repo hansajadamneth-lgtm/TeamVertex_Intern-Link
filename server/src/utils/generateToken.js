@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
  * @param {string} [expiresIn] - Optional custom expiration duration
  * @returns {string} Signed JWT token
  */
-const generateToken = (payload, expiresIn = process.env.JWT_EXPIRE || "30d") => {
+const generateToken = (payload, expiresIn = process.env.JWT_EXPIRE || "7d") => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -21,6 +21,7 @@ const generateToken = (payload, expiresIn = process.env.JWT_EXPIRE || "30d") => 
 
   return jwt.sign(data, secret, {
     expiresIn,
+    algorithm: "HS256",
   });
 };
 
@@ -39,7 +40,7 @@ const verifyToken = (token) => {
     );
   }
 
-  return jwt.verify(token, secret);
+  return jwt.verify(token, secret, { algorithms: ["HS256"] });
 };
 
 module.exports = {
