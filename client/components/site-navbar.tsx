@@ -143,7 +143,7 @@ export function SiteNavbar() {
 
   return (
     <div className="il-site-navigation sticky top-0 z-50 w-full print:hidden">
-      <header className="border-b border-white/10 bg-[#0b1b3e]/95 shadow-[0_5px_25px_-17px_rgba(0,0,0,.65)] backdrop-blur-xl">
+      <header className="relative z-20 border-b border-white/10 bg-[#0b1b3e]/95 shadow-[0_5px_25px_-17px_rgba(0,0,0,.65)] backdrop-blur-xl">
         <div className="mx-auto flex min-h-[76px] w-full max-w-[1500px] items-center gap-5 px-4 sm:px-6 lg:px-9">
           <Link href="/home" aria-label="InternLink Home" className="flex shrink-0 items-center gap-2.5 rounded-xl p-1 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white p-1 shadow-[0_8px_18px_-8px_rgba(0,0,0,.4)] ring-2 ring-white/10">
@@ -231,7 +231,7 @@ export function SiteNavbar() {
         )}
       </header>
       {/* Reusable glass breadcrumb: blends with the navy hero, stays readable across every page. */}
-      <div className="relative isolate overflow-hidden border-b border-white/15 bg-[linear-gradient(110deg,rgba(9,24,54,0.94)_0%,rgba(25,51,95,0.82)_52%,rgba(12,31,65,0.94)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_9px_25px_-19px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+      <div className="relative isolate z-0 overflow-hidden border-b border-white/15 bg-[linear-gradient(110deg,rgba(9,24,54,0.94)_0%,rgba(25,51,95,0.82)_52%,rgba(12,31,65,0.94)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_9px_25px_-19px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
         <div aria-hidden="true" className="pointer-events-none absolute -top-8 left-[14%] h-16 w-56 rounded-full bg-[#f5821f]/10 blur-2xl" />
         <nav aria-label="Breadcrumb" className="relative mx-auto flex min-h-11 max-w-[1500px] items-center gap-2.5 overflow-hidden px-5 py-1.5 text-xs font-medium text-white sm:px-7 lg:px-10">
           <Link
