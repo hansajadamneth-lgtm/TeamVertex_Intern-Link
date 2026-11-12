@@ -2,6 +2,7 @@ const Application = require("../models/Application");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const { scoreJob } = require("../utils/matchEngine");
+const mongoose = require("mongoose");
 
 /**
  * @desc    Submit a new internship application
@@ -13,10 +14,22 @@ const createApplication = async (req, res, next) => {
     const { jobId, job: jobFromBody, resumeUrl, coverLetter, notes } = req.body;
     const targetJobId = jobId || jobFromBody;
 
-    if (!targetJobId) {
+    if (!mongoose.isValidObjectId(targetJobId)) {
       return res.status(400).json({
         success: false,
-        message: "Please specify the internship job ID to apply for.",
+        message: "Please provide a valid internship job ID.",
+      });
+    }
+
+    // Bound user-supplied content before persisting it. Do not permit
+    // unsafe URI schemes or arbitrary objects in a student application.
+    if ((resumeUrl !== undefined && (typeof resumeUrl !== "string" ||
+          resumeUrl.length > 500 || (resumeUrl.trim() && !/^https:\/\/[^\s]+$/i.test(resumeUrl.trim())))) ||
+        (coverLetter !== undefined && (typeof coverLetter !== "string" || coverLetter.length > 5000)) ||
+        (notes !== undefined && (typeof notes !== "string" || notes.length > 5000))) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application details. CV links must use HTTPS, and the cover letter must be under 5000 characters.",
       });
     }
 
@@ -67,8 +80,8 @@ const createApplication = async (req, res, next) => {
       position: job.title,
       status: "Application sent",
       fitScore,
-      resumeUrl: resumeUrl || "",
-      coverLetter: coverLetter || notes || "",
+      resumeUrl: (resumeUrl || "").trim(),
+      coverLetter: (coverLetter || notes || "").trim(),
       action: "Download Copy",
     });
 
