@@ -168,6 +168,17 @@ const createJob = async (req, res, next) => {
       });
     }
 
+    // Reject malformed or expired deadlines before writing a public listing.
+    // A date-only deadline remains open through the end of the selected UTC day.
+    const parsedDeadline = deadline
+      ? (typeof deadline === "string" && /^\d{4}-\d{2}-\d{2}$/.test(deadline)
+          ? new Date(deadline + "T23:59:59.999Z")
+          : new Date(deadline))
+      : null;
+    if (parsedDeadline && (!Number.isFinite(parsedDeadline.getTime()) || parsedDeadline < new Date())) {
+      return res.status(400).json({ success: false, message: "Provide a valid future internship deadline." });
+    }
+
     // 2. Parse skills array if provided as comma-separated string
     let parsedSkills = [];
     if (Array.isArray(skills)) {
@@ -193,7 +204,7 @@ const createJob = async (req, res, next) => {
       location: resolvedLocation,
       type: type || "Full Time",
       duration: duration || "3 Months",
-      deadline: deadline ? new Date(deadline) : null,
+      deadline: parsedDeadline,
       description: resolvedDescription,
       requirements: requirements || "",
       skills: parsedSkills,
@@ -257,10 +268,21 @@ const updateJob = async (req, res, next) => {
       "status",
     ];
 
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        job[field] = req.body[field];
+    // Do not let edits reopen old listings or silently accept invalid dates.
+    if (req.body.deadline !== undefined) {
+      const supplied = req.body.deadline;
+      const parsed = supplied
+        ? (typeof supplied === "string" && /^\d{4}-\d{2}-\d{2}$/.test(supplied)
+            ? new Date(supplied + "T23:59:59.999Z")
+            : new Date(supplied))
+        : null;
+      if (parsed && (!Number.isFinite(parsed.getTime()) || parsed < new Date())) {
+        return res.status(400).json({ success: false, message: "Provide a valid future internship deadline." });
       }
+      req.body.deadline = parsed;
+    }
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) job[field] = req.body[field];
     });
 
     await job.save();
