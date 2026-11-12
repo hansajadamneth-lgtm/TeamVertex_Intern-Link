@@ -24,7 +24,7 @@ const setTokenCookie = (res, token) => {
  */
 const registerUser = async (req, res, next) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password, role } = req.body || {};
 
     // 1. Validate required fields
     if (!fullName || !email || !password) {
@@ -46,10 +46,12 @@ const registerUser = async (req, res, next) => {
     const normalizedEmail = String(email).trim().toLowerCase();
     const requestedRole = role ? String(role).trim().toLowerCase() : "student";
 
-    if (trimmedName.length < 2) {
+    if (trimmedName.length < 2 || trimmedName.length > 100 ||
+        normalizedEmail.length > 254 ||
+        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(normalizedEmail)) {
       return res.status(400).json({
         success: false,
-        message: "Full name must be at least 2 characters.",
+        message: "Please enter a valid full name (2–100 characters) and email address.",
       });
     }
 
@@ -105,7 +107,7 @@ const registerUser = async (req, res, next) => {
  */
 const loginUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     // 1. Validate inputs
     if (!email || !password) {
@@ -116,6 +118,10 @@ const loginUser = async (req, res, next) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
+    if (typeof email !== "string" || typeof password !== "string" ||
+        normalizedEmail.length > 254 || password.length > 128) {
+      return res.status(400).json({ success: false, message: "Invalid login details." });
+    }
 
     // 2. Query user including the hidden password field
     const user = await User.findOne({ email: normalizedEmail }).select("+password");
@@ -231,7 +237,7 @@ const updateMe = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid profile details or field length." });
     }
     for (const key of ["fullName", "phone", "location", "education", "bio"]) {
-      if (req.body[key] !== undefined) user[key] = req.body[key].trim();
+      if (req.body?.[key] !== undefined) user[key] = req.body[key].trim();
     }
     if (skills !== undefined) user.skills = [...new Set(skills.map((skill) => skill.trim()))];
     await user.save();
