@@ -1,0 +1,31 @@
+name: InternLink checks
+
+on:
+  push:
+    branches:
+      - feature/internlink-proposal-completion
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Run Express matching and security regression tests
+        run: npm test --workspace=server
+      - name: Validate client TypeScript
+        run: npx tsc --noEmit -p client/tsconfig.json
+      - name: Build Next.js client
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build --workspace=client
