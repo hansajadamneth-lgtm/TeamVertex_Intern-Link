@@ -105,9 +105,15 @@ const createCompany = async (req, res, next) => {
   try {
     const { name, industry, email, website, location, description } = req.body;
 
-    const trimmedName = (name || "").trim();
-    const trimmedIndustry = (industry || "").trim();
-    const trimmedEmail = (email || "").trim().toLowerCase();
+    // Reject non-string fields before calling trim() or Mongoose validators.
+    // Invalid client input should return 400, never trigger an internal 500.
+    if ([name, industry, email].some(value => typeof value !== "string") ||
+        [website, location, description].some(value => value !== undefined && typeof value !== "string")) {
+      return res.status(400).json({ success: false, message: "Company details must contain valid text fields." });
+    }
+    const trimmedName = name.trim();
+    const trimmedIndustry = industry.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     const trimmedWebsite = String(website || "").trim();
     const validWebsite = !trimmedWebsite || /^https?:\/\/[^\s]+$/i.test(trimmedWebsite);
     if (!validWebsite || trimmedWebsite.length > 400) {
@@ -120,6 +126,12 @@ const createCompany = async (req, res, next) => {
         success: false,
         message: "Please provide company name, industry, and contact email.",
       });
+    }
+    if (trimmedName.length < 2 || trimmedName.length > 150 ||
+        trimmedIndustry.length > 100 || trimmedIndustry.length < 2 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail) || trimmedEmail.length > 254 ||
+        (location || "").length > 120 || (description || "").length > 2000) {
+      return res.status(400).json({ success: false, message: "Invalid company name, industry, email or field length." });
     }
 
     // 2. Prevent employers from creating duplicate company profiles for their account
@@ -245,6 +257,18 @@ const updateCompany = async (req, res, next) => {
     if (req.body.website !== undefined && (typeof req.body.website !== "string" ||
         (req.body.website.trim() && (!/^https?:\/\/[^\s]+$/i.test(req.body.website.trim()) || req.body.website.length > 400)))) {
       return res.status(400).json({ success: false, message: "Company website must be a valid http:// or https:// URL." });
+    }
+
+    const editableFields = ["name", "industry", "email", "website", "location", "description"];
+    if (editableFields.some(field => req.body[field] !== undefined && typeof req.body[field] !== "string")) {
+      return res.status(400).json({ success: false, message: "Company updates must contain valid text fields." });
+    }
+    if ((req.body.name !== undefined && (req.body.name.trim().length < 2 || req.body.name.trim().length > 150)) ||
+        (req.body.industry !== undefined && (req.body.industry.trim().length < 2 || req.body.industry.trim().length > 100)) ||
+        (req.body.email !== undefined && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email.trim()) || req.body.email.length > 254)) ||
+        (req.body.location !== undefined && req.body.location.length > 120) ||
+        (req.body.description !== undefined && req.body.description.length > 2000)) {
+      return res.status(400).json({ success: false, message: "Invalid company update values or lengths." });
     }
 
     // Whitelist editable fields (prevent employers from self-verifying status or changing owner)
