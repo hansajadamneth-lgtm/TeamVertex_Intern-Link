@@ -154,7 +154,7 @@ const createJob = async (req, res, next) => {
       skills,
       salary,
       status,
-    } = req.body;
+    } = req.body || {};
 
     const resolvedTitle = (title || jobTitle || "").trim();
     const resolvedLocation = (location || "").trim();
@@ -253,6 +253,8 @@ const updateJob = async (req, res, next) => {
       });
     }
 
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) return res.status(400).json({ success: false, message: "Provide valid internship update fields." });
+
     // Whitelist allowed update fields (ignore any attempts to overwrite postedBy)
     const allowedFields = [
       "title",
@@ -269,7 +271,7 @@ const updateJob = async (req, res, next) => {
     ];
 
     // Do not let edits reopen old listings or silently accept invalid dates.
-    if (req.body.deadline !== undefined) {
+    if (req.body?.deadline !== undefined) {
       const supplied = req.body.deadline;
       const parsed = supplied
         ? (typeof supplied === "string" && /^\d{4}-\d{2}-\d{2}$/.test(supplied)
