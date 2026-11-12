@@ -145,10 +145,10 @@ const loginUser = async (req, res, next) => {
     }
 
     // 4. Check account status
-    if (user.status === "Inactive") {
+    if (user.status !== "Active" && user.status !== undefined) {
       return res.status(403).json({
         success: false,
-        message: "Your account is currently inactive. Please contact support.",
+        message: "Your account is not active. Please contact support.",
       });
     }
 
