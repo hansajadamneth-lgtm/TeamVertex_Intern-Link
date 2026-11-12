@@ -103,7 +103,7 @@ const getCompanyById = async (req, res, next) => {
  */
 const createCompany = async (req, res, next) => {
   try {
-    const { name, industry, email, website, location, description } = req.body;
+    const { name, industry, email, website, location, description } = req.body || {};
 
     // Reject non-string fields before calling trim() or Mongoose validators.
     // Invalid client input should return 400, never trigger an internal 500.
@@ -195,7 +195,7 @@ const createCompany = async (req, res, next) => {
  */
 const updateCompanyStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status } = req.body || {};
 
     const allowedStatuses = ["Verified", "Pending", "Suspended"];
     if (!status || !allowedStatuses.includes(status)) {
@@ -254,12 +254,13 @@ const updateCompany = async (req, res, next) => {
       });
     }
 
-    if (req.body.website !== undefined && (typeof req.body.website !== "string" ||
+    if (req.body?.website !== undefined && (typeof req.body.website !== "string" ||
         (req.body.website.trim() && (!/^https?:\/\/[^\s]+$/i.test(req.body.website.trim()) || req.body.website.length > 400)))) {
       return res.status(400).json({ success: false, message: "Company website must be a valid http:// or https:// URL." });
     }
 
     const editableFields = ["name", "industry", "email", "website", "location", "description"];
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) return res.status(400).json({ success: false, message: "Please provide valid company updates." });
     if (editableFields.some(field => req.body[field] !== undefined && typeof req.body[field] !== "string")) {
       return res.status(400).json({ success: false, message: "Company updates must contain valid text fields." });
     }
