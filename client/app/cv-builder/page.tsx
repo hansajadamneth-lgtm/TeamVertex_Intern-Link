@@ -30,6 +30,7 @@ export default function CvBuilder() {
    const list: Cv[] = json.data || []; setCvs(list);
    if (selectedId) { const next = list.find((item) => item._id === selectedId); if (next) select(next); }
    else if (list.length) select(list[0]);
+   else select(blank());
    return list;
  };
  useEffect(() => { refresh().catch((e: Error) => setError(e.message)).finally(() => setLoading(false)); }, []);
@@ -120,8 +121,11 @@ export default function CvBuilder() {
            {field("Professional headline", cv.headline, (v) => update("headline", v))}
            {field("Profile summary", cv.summary, (v) => update("summary", v), true)}
            {field("Skills (comma separated)", skillText, setSkillText, true)}
-           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={cv.isPrimary} onChange={(e) => update("isPrimary", e.target.checked)} />
+           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={cv.isPrimary}
+             disabled={Boolean(cv._id && cv.isPrimary)}
+             onChange={(e) => update("isPrimary", e.target.checked)} />
              Use as my primary CV for recommendations</label>
+           {cv._id && cv.isPrimary && <p className="text-xs text-slate-500">A primary CV is required for matching. To change it, select another version and make that one primary.</p>}
          </section>
          {sections.map((section) => <section key={section.key} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_28px_-16px_rgba(11,27,62,0.22)]">
            <div className="mb-4 flex items-center justify-between">
