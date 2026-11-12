@@ -343,13 +343,6 @@ export function RegisterCard() {
             </div>
           </Button>
 
-          {/* Divider */}
-          <div className="relative flex items-center py-1">
-            <div className="flex-grow border-t border-gray-200" />
-            <span className="mx-4 text-xs font-semibold text-gray-400">OR</span>
-            <div className="flex-grow border-t border-gray-200" />
-          </div>
-
           {/* Sign in redirect link */}
           <p className="pt-1 text-center text-xs text-gray-600">
             Already have an account?{" "}
