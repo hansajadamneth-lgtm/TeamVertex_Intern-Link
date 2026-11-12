@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
  */
 const createApplication = async (req, res, next) => {
   try {
-    const { jobId, job: jobFromBody, resumeUrl, coverLetter, notes } = req.body;
+    const { jobId, job: jobFromBody, resumeUrl, coverLetter, notes } = req.body || {};
     const targetJobId = jobId || jobFromBody;
 
     if (!mongoose.isValidObjectId(targetJobId)) {
@@ -176,7 +176,7 @@ const getApplicationsForJob = async (req, res, next) => {
  */
 const updateApplicationStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status } = req.body || {};
 
     const allowedStatuses = [
       "Interview scheduled",
