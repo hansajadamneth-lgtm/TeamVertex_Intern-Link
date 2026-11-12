@@ -9,6 +9,8 @@ function response() {
   return {
     statusCode: 200,
     payload: null,
+    headers: {},
+    set(name, value) { this.headers[name] = value; return this; },
     status(code) { this.statusCode = code; return this; },
     json(body) { this.payload = body; return this; },
   };
