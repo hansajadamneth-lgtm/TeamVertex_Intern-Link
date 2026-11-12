@@ -20,8 +20,8 @@ const protect = async (req, res, next) => {
     token = req.cookies.token;
   }
 
-  // Reject if no token is found
-  if (!token) {
+  // Reject absent or oversized tokens before parsing/verifying.
+  if (!token || typeof token !== "string" || token.length > 4096) {
     return res.status(401).json({
       success: false,
       message: "Not authorized. No authentication token provided.",
@@ -32,13 +32,16 @@ const protect = async (req, res, next) => {
   if (!secret) {
     return res.status(500).json({
       success: false,
-      message: "Server configuration error: JWT_SECRET is not configured.",
+      message: "Authentication is temporarily unavailable.",
     });
   }
 
   try {
     // Verify token
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] });
+    if (!decoded || typeof decoded.id !== "string" || !/^[0-9a-f]{24}$/i.test(decoded.id)) {
+      return res.status(401).json({ success: false, message: "Invalid authentication token." });
+    }
 
     // Fetch user from database excluding password
     const user = await User.findById(decoded.id).select("-password");
@@ -57,13 +60,14 @@ const protect = async (req, res, next) => {
       });
     }
 
-    if (user.status === "Inactive") {
+    if (user.status !== "Active" && user.status !== undefined) {
       return res.status(403).json({
         success: false,
         message: "Your account is currently inactive. Please contact support.",
       });
     }
 
+    res.set("Cache-Control", "no-store");
     // Attach user to request
     req.user = user;
     next();
