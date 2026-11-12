@@ -327,16 +327,8 @@ const deleteJob = async (req, res, next) => {
       });
     }
 
-    // Support permanent deletion via query ?permanent=true, otherwise safe closure
-    if (req.query.permanent === "true") {
-      await job.deleteOne();
-      return res.status(200).json({
-        success: true,
-        message: "Internship post permanently removed.",
-        data: { id: req.params.id },
-      });
-    }
-
+    // Always soft-close listings. Permanent deletion would orphan student
+    // applications and destroy recruitment records needed for accountability.
     // Default safe closure
     job.status = "Closed";
     await job.save();
