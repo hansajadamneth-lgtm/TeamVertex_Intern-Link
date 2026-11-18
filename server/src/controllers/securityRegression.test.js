@@ -8,6 +8,8 @@ const Company = require("../models/Company");
 const Cv = require("../models/Cv");
 const Application = require("../models/Application");
 const { createApplication, updateApplicationStatus, getApplicationsForJob } = require("./applicationController");
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
 
 function response() {
   return {
@@ -27,6 +29,37 @@ async function expectRejected(handler, request, expected = 400) {
   assert.equal(res.statusCode, expected);
   assert.equal(res.payload.success, false);
 }
+
+test("anonymous requests cannot pass authentication middleware", async () => {
+  const res = response();
+  let passed = false;
+  await protect({ headers: {}, cookies: {} }, res, () => { passed = true; });
+  assert.equal(passed, false);
+  assert.equal(res.statusCode, 401);
+});
+
+test("student accounts cannot pass admin role middleware", () => {
+  const res = response();
+  let passed = false;
+  authorize("admin")({ user: { role: "student" } }, res, () => { passed = true; });
+  assert.equal(passed, false);
+  assert.equal(res.statusCode, 403);
+});
+
+test("employer accounts cannot pass student role middleware", () => {
+  const res = response();
+  let passed = false;
+  authorize("student")({ user: { role: "employer" } }, res, () => { passed = true; });
+  assert.equal(passed, false);
+  assert.equal(res.statusCode, 403);
+});
+
+test("admin accounts pass admin role middleware", () => {
+  const res = response();
+  let passed = false;
+  authorize("admin")({ user: { role: "admin" } }, res, () => { passed = true; });
+  assert.equal(passed, true);
+});
 
 test("registration without a JSON body gives 400, not 500", async () => {
   await expectRejected(registerUser, {});
