@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
+import { AdminSidebarNavigation } from "@/components/admin-sidebar-navigation";
 
 export default async function AdminLayout({
   children,
@@ -55,54 +55,7 @@ export default async function AdminLayout({
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-x-auto px-3 py-3 lg:py-6">
-          <div className="flex gap-2 lg:block lg:space-y-2">
-            <Link
-              href="/admin/dashboard"
-             className="flex items-center gap-3 rounded-xl border border-orange-500 bg-orange-500/10 px-4 py-3 text-sm text-orange-500"
-            >
-              <span>▦</span>
-              Dashboard
-            </Link>
-
-            <Link
-              href="/admin/students"
-              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
-            >
-              <span>♙</span>
-              Students
-            </Link>
-
-            <Link
-              href="/admin/companies"
-              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
-            >
-              <span>▥</span>
-              Companies
-            </Link>
-
-            <Link
-              href="/admin/internship-posts"
-              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
-            >
-              <span>▤</span>
-              Internship Posts
-            </Link>
-
-            <Link
-              href="/admin/reports"
-              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10"
-            >
-              <span>▥</span>
-              Reports
-            </Link>
-
-            <Link href="/admin/contact-messages" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/10">
-              <span>✉</span> Contact inbox
-            </Link>
-          </div>
-        </nav>
+        <AdminSidebarNavigation />
 
         {/* Logout */}
         <div className="border-t border-white/10 p-3">
