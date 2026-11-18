@@ -3,6 +3,10 @@ const assert = require("node:assert/strict");
 const { registerUser, loginUser } = require("./authController");
 const { createCompany } = require("./companyController");
 const { createJob } = require("./jobController");
+const Job = require("../models/Job");
+const Company = require("../models/Company");
+const Cv = require("../models/Cv");
+const Application = require("../models/Application");
 const { createApplication, updateApplicationStatus, getApplicationsForJob } = require("./applicationController");
 
 function response() {
@@ -86,4 +90,54 @@ test("application status rejects malformed application IDs", async () => {
     params: { id: "incorrect" }, body: { status: "Accepted" },
     user: { _id: "507f191e810c19729de860ea", role: "employer" },
   });
+});
+
+test("student application uses only an owned CV, snapshots it and increments the job counter", async () => {
+  const original = {
+    job: Job.findById, company: Company.findOne, cv: Cv.findOne,
+    existing: Application.findOne, create: Application.create, count: Job.findByIdAndUpdate,
+  };
+  const jobId = "507f191e810c19729de861";
+  const studentId = "507f191e810c19729de862";
+  const companyId = "507f191e810c19729de863";
+  const cvId = "507f191e810c19729de864";
+  let created = null, increment = null;
+  try {
+    Job.findById = async () => ({
+      _id: jobId, company: companyId, companyName: "Demo Company",
+      title: "Demo Internship", status: "Active", skills: ["React"], deadline: null,
+    });
+    Company.findOne = async () => ({ _id: companyId, status: "Verified" });
+    Cv.findOne = async query => {
+      assert.equal(String(query._id), cvId);
+      assert.equal(String(query.student), studentId);
+      return { _id: cvId, name: "Demo CV", headline: "Frontend Student",
+        skills: ["React"], education: [], experience: [], projects: [] };
+    };
+    Application.findOne = async () => null;
+    Application.create = async data => { created = data; return { _id: "507f191e810c19729de865", ...data }; };
+    Job.findByIdAndUpdate = async (id, change) => { increment = { id, change }; return {}; };
+    const res = response();
+    let unexpected;
+    await createApplication({
+      body: { jobId, cvId, coverLetter: "I would like to apply" },
+      user: { _id: studentId, skills: ["React"], role: "student" },
+    }, res, error => { unexpected = error; });
+    assert.equal(unexpected, undefined);
+    assert.equal(res.statusCode, 201);
+    assert.equal(created.cv, cvId);
+    assert.equal(created.cvSnapshot.name, "Demo CV");
+    assert.deepEqual(created.cvSnapshot.skills, ["React"]);
+    assert.equal(created.coverLetter, "I would like to apply");
+    assert.equal(created.student, studentId);
+    assert.equal(increment.id, jobId);
+    assert.equal(increment.change.$inc.applicationsCount, 1);
+  } finally {
+    Job.findById = original.job;
+    Company.findOne = original.company;
+    Cv.findOne = original.cv;
+    Application.findOne = original.existing;
+    Application.create = original.create;
+    Job.findByIdAndUpdate = original.count;
+  }
 });
