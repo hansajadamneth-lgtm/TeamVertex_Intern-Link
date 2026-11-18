@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { registerUser, loginUser } = require("./authController");
-const { createCompany } = require("./companyController");
+const { createCompany, updateCompany } = require("./companyController");
 const { createJob, updateJob } = require("./jobController");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
@@ -45,6 +45,35 @@ test("company registration rejects a non-string name", async () => {
     user: { _id: "507f191e810c19729de860ea", role: "employer" },
   });
 });
+test("verified company identity changes require administrator re-verification", async () => {
+  const originalFindById = Company.findById;
+  let saved;
+  try {
+    Company.findById = async () => ({
+      _id: "507f191e810c19729de86063",
+      owner: { toString: () => "507f191e810c19729de86062" },
+      name: "Demo Technology",
+      email: "contact@example.com",
+      website: "https://example.com",
+      status: "Verified",
+      async save() { saved = { status: this.status, website: this.website }; },
+    });
+    const res = response();
+    let unexpected;
+    await updateCompany({
+      params: { id: "507f191e810c19729de86063" },
+      user: { _id: "507f191e810c19729de86062", role: "employer" },
+      body: { website: "https://new.example.com" },
+    }, res, error => { unexpected = error; });
+    assert.equal(unexpected, undefined);
+    assert.equal(res.statusCode, 200);
+    assert.equal(saved.status, "Pending");
+    assert.equal(saved.website, "https://new.example.com");
+  } finally {
+    Company.findById = originalFindById;
+  }
+});
+
 test("job posting without a JSON body gives 400", async () => {
   await expectRejected(createJob, { user: { _id: "507f191e810c19729de860ea", role: "employer" } });
 });
