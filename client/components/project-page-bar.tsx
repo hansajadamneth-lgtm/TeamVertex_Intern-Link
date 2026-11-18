@@ -7,7 +7,7 @@ import { useState } from "react";
 const PAGE_LINKS = [
   ["Home", "/home"],
   ["Jobs", "/job-details"],
-  ["CV builder", "/"],
+  ["CV builder", "/cv-builder"],
   ["Saved jobs", "/saved-jobs"],
   ["Applications", "/applications"],
   ["Recommendations", "/recommendations"],
