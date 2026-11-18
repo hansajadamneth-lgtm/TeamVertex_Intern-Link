@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Search, MapPin, ArrowRight, CheckCircle2, Heart } from "lucide-react";
+type Cv = { _id: string; name: string; isPrimary?: boolean; headline?: string };
 type Job = { _id: string; title: string; companyName: string; location: string; category: string;
  type: string; duration: string; description: string; requirements: string; skills: string[];
  deadline?: string; salary?: string };
@@ -13,6 +14,11 @@ export default function JobsPage() {
  const [search,setSearch]=useState(""),[category,setCategory]=useState("All");
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [applying,setApplying]=useState(false);
+ const [cvs,setCvs]=useState<Cv[]>([]);
+ const [selectedCv,setSelectedCv]=useState("");
+ const [coverLetter,setCoverLetter]=useState("");
+ const [resumeUrl,setResumeUrl]=useState("");
+ const [appliedIds,setAppliedIds]=useState<string[]>([]);
  const [saved,setSaved]=useState<string[]>([]);
  const [savingJob,setSavingJob]=useState(false);
  useEffect(()=>{
@@ -31,6 +37,16 @@ export default function JobsPage() {
     .then(j=>{if(j?.success)setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id).filter((id: string | undefined): id is string => Boolean(id)));})
     .catch(()=>{});
  },[]);
+ useEffect(()=>{
+  fetch("/api/cvs",{cache:"no-store"}).then(async r=>r.ok?r.json():null).then(j=>{
+   if(j?.success){const versions:Cv[]=j.data||[];setCvs(versions);
+    setSelectedCv(versions.find(v=>v.isPrimary)?._id||versions[0]?._id||"");}
+  }).catch(()=>{});
+  fetch("/api/applications/me",{cache:"no-store"}).then(async r=>r.ok?r.json():null)
+   .then(j=>{if(j?.success)setAppliedIds((j.data||[]).map((a:{job?:{_id?:string}|string})=>
+    typeof a.job==="string"?a.job:a.job?._id).filter((id:unknown):id is string=>typeof id==="string"));})
+   .catch(()=>{});
+ },[]);
  const filtered=jobs.filter(j=>(category==="All"||j.category===category)&&
   [j.title,j.companyName,j.location,...(j.skills||[])].join(" ").toLowerCase().includes(search.toLowerCase()));
  const job=filtered.find(j=>j._id===selected)||filtered[0];
@@ -39,7 +55,7 @@ export default function JobsPage() {
   const isSaved=saved.includes(job._id);
   try{
    const r=await fetch(isSaved?"/api/saved-jobs/"+encodeURIComponent(job._id):"/api/saved-jobs",{
-    method:isSaved?"DELETE":"POST",...(isSaved?{}:{headers:{"Content-Type":"application/json"},body:JSON.stringify({jobId:job._id})}),
+    method:isSaved?"DELETE":"POST",...(isSaved?{}:{headers:{"Content-Type":"application/json"},body:JSON.stringify({jobId:job._id,cvId:selectedCv,coverLetter:coverLetter.trim(),resumeUrl:resumeUrl.trim()})}),
    });
    const j=await r.json();
    if(!r.ok||!j.success)throw new Error(j.message||"Could not update saved internships.");
@@ -49,12 +65,17 @@ export default function JobsPage() {
   finally{setSavingJob(false);}
  };
  const apply=async()=>{
-  if(!job)return;setApplying(true);setError("");setNotice("");
+  if(!job)return;
+  if(!selectedCv){setError("Create and save a CV in CV Builder before applying.");return;}
+  if(appliedIds.includes(job._id)){setError("You have already applied to this internship.");return;}
+  setApplying(true);setError("");setNotice("");
   try{
    const r=await fetch("/api/applications",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({jobId:job._id})});const result=await r.json();
    if(!r.ok||!result.success)throw new Error(result.message||"Application failed.");
    setNotice("Application submitted! Track progress in My Applications.");
+   setAppliedIds(current=>[...new Set([...current,job._id])]);
+   setCoverLetter("");
   }catch(e){setError((e instanceof Error?e.message:"Application failed.")+" Sign in as a student if necessary.");}
   finally{setApplying(false);}
  };
@@ -88,8 +109,26 @@ export default function JobsPage() {
      <p className="mt-2 text-sm text-slate-500">{job.type} · {job.duration||"Duration not specified"}</p>
      {job.salary&&<p className="mt-3 text-sm">Compensation: {job.salary}</p>}
      {job.deadline&&<p className="mt-2 text-sm">Deadline: {new Date(job.deadline).toLocaleDateString()}</p>}
-     <button disabled={applying} onClick={apply} className="mt-6 w-full rounded-xl bg-[#ff7417] py-3 font-semibold text-white disabled:opacity-50">
-       {applying?"Submitting...":"Apply for this internship"} <ArrowRight size={16} className="ml-2 inline"/></button>
+     <div className="mt-6 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+      <label className="block text-sm font-semibold">CV to submit
+       <select value={selectedCv} onChange={e=>setSelectedCv(e.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3">
+        {cvs.length===0&&<option value="">No saved CV available</option>}
+        {cvs.map(cv=><option key={cv._id} value={cv._id}>{cv.name}{cv.isPrimary?" (primary)":""}</option>)}
+       </select>
+      </label>
+      {cvs.length===0&&<p className="text-sm text-amber-700">You need a saved CV to apply. <Link href="/cv-builder" className="font-semibold underline">Create a CV</Link> first, then return to this job.</p>}
+      <label className="block text-sm font-semibold">Cover letter (optional)
+       <textarea maxLength={5000} rows={5} value={coverLetter} onChange={e=>setCoverLetter(e.target.value)}
+        placeholder="Why are you a good fit for this internship?" className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal"/>
+      </label>
+      <label className="block text-sm font-semibold">External resume link (optional, HTTPS only)
+       <input type="url" maxLength={500} value={resumeUrl} onChange={e=>setResumeUrl(e.target.value)} placeholder="https://..."
+        className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal"/>
+      </label>
+      <p className="text-xs text-slate-500">Your selected CV is saved with this application. Changes to the original CV will not modify your submitted version.</p>
+     </div>
+     <button disabled={applying||!selectedCv||appliedIds.includes(job._id)} onClick={apply} className="mt-4 w-full rounded-xl bg-[#ff7417] py-3 font-semibold text-white disabled:opacity-50">
+       {applying?"Submitting...":appliedIds.includes(job._id)?"Already applied":"Submit application"} <ArrowRight size={16} className="ml-2 inline"/></button>
      <button type="button" disabled={savingJob} onClick={toggleSave} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 px-5 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-50 disabled:opacity-50">
        <Heart size={17} fill={saved.includes(job._id)?"currentColor":"none"}/>
        {savingJob?"Updating...":saved.includes(job._id)?"Remove from saved jobs":"Save internship"}
