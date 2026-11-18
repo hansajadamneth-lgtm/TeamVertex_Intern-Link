@@ -328,6 +328,16 @@ const updateJob = async (req, res, next) => {
       "status",
     ];
 
+    // Closed/expired internships keep their recruitment history and must not
+    // be reopened with a generic edit request.
+    if (["Closed", "Expired"].includes(job.status) &&
+        req.body.status !== undefined && req.body.status !== job.status) {
+      return res.status(409).json({
+        success: false,
+        message: "Closed or expired internships cannot be reopened through an edit.",
+      });
+    }
+
     // Do not let edits reopen old listings or silently accept invalid dates.
     if (req.body?.deadline !== undefined) {
       const supplied = req.body.deadline;
