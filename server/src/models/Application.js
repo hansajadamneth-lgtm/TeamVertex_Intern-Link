@@ -1,5 +1,23 @@
 const mongoose = require("mongoose");
 
+// Preserve the CV as submitted: later edits must not alter the employer's record.
+const cvItemSchema = new mongoose.Schema({
+  title: { type: String, maxlength: 160 },
+  organization: { type: String, maxlength: 160 },
+  period: { type: String, maxlength: 90 },
+  details: { type: String, maxlength: 3000 },
+  url: { type: String, maxlength: 400 },
+}, { _id: false });
+const cvSnapshotSchema = new mongoose.Schema({
+  name: { type: String, maxlength: 80 },
+  headline: { type: String, maxlength: 180 },
+  summary: { type: String, maxlength: 3000 },
+  skills: { type: [String], default: [] },
+  education: { type: [cvItemSchema], default: [] },
+  experience: { type: [cvItemSchema], default: [] },
+  projects: { type: [cvItemSchema], default: [] },
+}, { _id: false });
+
 const applicationSchema = new mongoose.Schema(
   {
     student: {
@@ -50,6 +68,8 @@ const applicationSchema = new mongoose.Schema(
       max: [100, "Fit score cannot exceed 100"],
       default: 80,
     },
+    cv: { type: mongoose.Schema.Types.ObjectId, ref: "Cv", default: null },
+    cvSnapshot: { type: cvSnapshotSchema, default: null },
     resumeUrl: {
       type: String,
       default: "",
