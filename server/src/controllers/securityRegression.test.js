@@ -97,10 +97,10 @@ test("student application uses only an owned CV, snapshots it and increments the
     job: Job.findById, company: Company.findOne, cv: Cv.findOne,
     existing: Application.findOne, create: Application.create, count: Job.findByIdAndUpdate,
   };
-  const jobId = "507f191e810c19729de861";
-  const studentId = "507f191e810c19729de862";
-  const companyId = "507f191e810c19729de863";
-  const cvId = "507f191e810c19729de864";
+  const jobId = "507f191e810c19729de86061";
+  const studentId = "507f191e810c19729de86062";
+  const companyId = "507f191e810c19729de86063";
+  const cvId = "507f191e810c19729de86064";
   let created = null, increment = null;
   try {
     Job.findById = async () => ({
@@ -115,7 +115,7 @@ test("student application uses only an owned CV, snapshots it and increments the
         skills: ["React"], education: [], experience: [], projects: [] };
     };
     Application.findOne = async () => null;
-    Application.create = async data => { created = data; return { _id: "507f191e810c19729de865", ...data }; };
+    Application.create = async data => { created = data; return { _id: "507f191e810c19729de86065", ...data }; };
     Job.findByIdAndUpdate = async (id, change) => { increment = { id, change }; return {}; };
     const res = response();
     let unexpected;
