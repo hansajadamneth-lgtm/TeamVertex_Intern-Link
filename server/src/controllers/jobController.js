@@ -156,9 +156,24 @@ const createJob = async (req, res, next) => {
       status,
     } = req.body || {};
 
-    const resolvedTitle = (title || jobTitle || "").trim();
-    const resolvedLocation = (location || "").trim();
-    const resolvedDescription = (description || "").trim();
+    // Validate types before trimming or parsing dates: malformed JSON should
+    // return a client error instead of throwing and becoming HTTP 500.
+    const requiredValues = [title ?? jobTitle, location, description];
+    const optionalText = [companyName, category, type, duration, requirements, salary, status];
+    if (requiredValues.some((value) => typeof value !== "string") ||
+        optionalText.some((value) => value !== undefined && typeof value !== "string") ||
+        (deadline !== undefined && deadline !== null && typeof deadline !== "string") ||
+        (skills !== undefined && typeof skills !== "string" &&
+          (!Array.isArray(skills) || !skills.every((skill) => typeof skill === "string")))) {
+      return res.status(400).json({
+        success: false,
+        message: "Internship details must contain valid text, skills, and deadline fields.",
+      });
+    }
+
+    const resolvedTitle = (title ?? jobTitle).trim();
+    const resolvedLocation = location.trim();
+    const resolvedDescription = description.trim();
 
     // 1. Validate required fields
     if (!resolvedTitle || !resolvedLocation || !resolvedDescription) {
