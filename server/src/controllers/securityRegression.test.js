@@ -48,6 +48,18 @@ test("company registration rejects a non-string name", async () => {
 test("job posting without a JSON body gives 400", async () => {
   await expectRejected(createJob, { user: { _id: "507f191e810c19729de860ea", role: "employer" } });
 });
+test("job posting rejects non-string title and invalid deadline types before database access", async () => {
+  const user = { _id: "507f191e810c19729de860ea", role: "employer" };
+  await expectRejected(createJob, {
+    user,
+    body: { title: { $gt: "" }, location: "Colombo", description: "Internship" },
+  });
+  await expectRejected(createJob, {
+    user,
+    body: { title: "Software Intern", location: "Colombo", description: "Internship", deadline: {} },
+  });
+});
+
 test("job posting with past deadline gives 400 before writing", async () => {
   await expectRejected(createJob, {
     body: {
