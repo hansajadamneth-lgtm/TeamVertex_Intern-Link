@@ -141,7 +141,7 @@ export function SiteNavbar() {
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [{ label: "Employer portal", href: "/employer" }] : []),
     ...(!account ? GUEST_LINKS : []),
-  ];
+  ].filter((link) => !visibleMainLinks.some((main) => main.href === link.href));
   const mainActive = visibleMainLinks.some((link) => isActive(pathname, link.href));
   const moreActive = moreLinks.some((link) => isActive(pathname, link.href)) || (!mainActive && pathname.startsWith("/admin/"));
   const currentPage = pageName(pathname);
