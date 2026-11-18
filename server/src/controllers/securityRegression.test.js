@@ -60,6 +60,15 @@ test("job posting rejects non-string title and invalid deadline types before dat
   });
 });
 
+test("job posting rejects excessive lengths and oversized skill lists", async () => {
+  const user = { _id: "507f191e810c19729de860ea", role: "employer" };
+  const valid = { title: "Software Intern", location: "Colombo", description: "Training internship" };
+  await expectRejected(createJob, { user, body: { ...valid, description: "x".repeat(10001) } });
+  await expectRejected(createJob, { user, body: { ...valid, location: "x".repeat(121) } });
+  await expectRejected(createJob, { user, body: { ...valid, skills: Array.from({ length: 31 }, (_, i) => "Skill " + i) } });
+  await expectRejected(createJob, { user, body: { ...valid, category: "invalid" } });
+});
+
 test("job posting with past deadline gives 400 before writing", async () => {
   await expectRejected(createJob, {
     body: {
