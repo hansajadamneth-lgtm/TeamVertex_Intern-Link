@@ -1,6 +1,7 @@
 const Application = require("../models/Application");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
+const Cv = require("../models/Cv");
 const { scoreJob } = require("../utils/matchEngine");
 const mongoose = require("mongoose");
 
@@ -11,7 +12,7 @@ const mongoose = require("mongoose");
  */
 const createApplication = async (req, res, next) => {
   try {
-    const { jobId, job: jobFromBody, resumeUrl, coverLetter, notes } = req.body || {};
+    const { jobId, job: jobFromBody, cvId, resumeUrl, coverLetter, notes } = req.body || {};
     const targetJobId = jobId || jobFromBody;
 
     if (!mongoose.isValidObjectId(targetJobId)) {
@@ -31,6 +32,10 @@ const createApplication = async (req, res, next) => {
         success: false,
         message: "Invalid application details. CV links must use HTTPS, and the cover letter must be under 5000 characters.",
       });
+    }
+
+    if (cvId !== undefined && !mongoose.isValidObjectId(cvId)) {
+      return res.status(400).json({ success: false, message: "Please select a valid saved CV." });
     }
 
     // 1. Verify that target job exists
@@ -55,6 +60,27 @@ const createApplication = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "This verified internship is no longer accepting applications." });
     }
 
+    // Only allow a CV owned by the applying student. A primary CV is the
+    // fallback for older clients that do not supply cvId.
+    const selectedCv = cvId
+      ? await Cv.findOne({ _id: cvId, student: req.user._id })
+      : await Cv.findOne({ student: req.user._id, isPrimary: true });
+    if (!selectedCv) {
+      return res.status(400).json({
+        success: false,
+        message: "Save a CV in CV Builder before applying, then select that CV.",
+      });
+    }
+    const snapshot = {
+      name: selectedCv.name,
+      headline: selectedCv.headline || "",
+      summary: selectedCv.summary || "",
+      skills: selectedCv.skills || [],
+      education: selectedCv.education || [],
+      experience: selectedCv.experience || [],
+      projects: selectedCv.projects || [],
+    };
+
     // 3. Prevent duplicate applications
     const existingApp = await Application.findOne({
       student: req.user._id,
@@ -69,7 +95,7 @@ const createApplication = async (req, res, next) => {
     }
 
     // 4. Deterministic, explainable matching; never use random scores.
-    const fitScore = scoreJob({ skills: req.user.skills || [] }, job).score;
+    const fitScore = scoreJob({ skills: snapshot.skills }, job).score;
 
     // 5. Create application record
     const application = await Application.create({
@@ -80,6 +106,8 @@ const createApplication = async (req, res, next) => {
       position: job.title,
       status: "Application sent",
       fitScore,
+      cv: selectedCv._id,
+      cvSnapshot: snapshot,
       resumeUrl: (resumeUrl || "").trim(),
       coverLetter: (coverLetter || notes || "").trim(),
       action: "Download Copy",
@@ -134,6 +162,9 @@ const getMyApplications = async (req, res, next) => {
  */
 const getApplicationsForJob = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.jobId)) {
+      return res.status(400).json({ success: false, message: "Invalid internship job ID." });
+    }
     const job = await Job.findById(req.params.jobId);
 
     if (!job) {
@@ -193,6 +224,9 @@ const updateApplicationStatus = async (req, res, next) => {
       });
     }
 
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid application ID." });
+    }
     const application = await Application.findById(req.params.id).populate("job");
 
     if (!application) {
