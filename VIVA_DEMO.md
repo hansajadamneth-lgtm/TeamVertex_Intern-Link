@@ -74,3 +74,58 @@ The project deliberately prevents users from selecting `admin` at public registr
 - Check Vercel deployments/Build Logs and Runtime Errors. A successful build alone does **not** prove the complete login-to-application workflow works.
 - Run local automated unit test: `npm test --workspace=server`. Legacy integration scripts should be run in a controlled test database, not blindly against production.
 - Final signoff requires manually completing the multi-role scenario and responsive browser review. An empty jobs/companies database is **not** a fully demo-ready state.
+
+
+## In-app CV application workflow (implementation update)
+
+The student applies **inside InternLink**. It does not send the student to an employer website.
+
+1. Employer signs in at `/employer`, registers a company, and waits for admin verification.
+2. Admin uses `/admin/companies` to mark the company **Verified**.
+3. Employer publishes an internship from `/employer`; this creates a document in MongoDB `jobs`.
+4. Student signs in, creates and saves one or more CV versions at `/cv-builder`.
+5. Student opens `/job-details`, selects a saved CV, optionally enters a cover letter and HTTPS external resume link, then clicks **Submit application**.
+6. Next.js `POST /api/applications` forwards the request to Express, which validates authenticated student role, verified/active/unexpired job, CV ownership, and duplicate application constraints.
+7. Express stores `student`, `job`, `company`, `cv`, a private `cvSnapshot`, optional `coverLetter`, `resumeUrl`, initial `Application sent` status, and the deterministic `fitScore`.
+8. Employer opens **View applicants** for their own internship at `/employer`, expands **Review submitted CV**, and updates the status to **Under review**, **Interview scheduled**, **Accepted**, or **Rejected**.
+9. Student visits `/applications` and clicks **Refresh statuses** to see the changed status. This is request/refresh based, not a push notification.
+
+**Privacy:** The application snapshot is only returned by authenticated student-owned and employer/job-owner or admin-only API routes. Do not share CV screenshots, student names, email addresses, or cover letters outside a controlled demo.
+
+**Backward compatibility:** Old applications without `cvSnapshot` remain visible and show “Not available (older application)” in the employer panel. New applications require a saved student CV. Deleting/editing the original saved CV does not change a previously submitted snapshot.
+
+### Run validation locally (Windows PowerShell)
+
+```powershell
+cd "E:\Team Vertex\TeamVertex_Intern-Link"
+git switch feature/internlink-proposal-completion
+npm install
+npm test --workspace=server
+npx tsc --noEmit -p client/tsconfig.json
+npm run build --workspace=client
+```
+
+Run Express and Next.js in separate terminals (with valid local `.env` configuration):
+
+```powershell
+npm run dev --workspace=server
+```
+
+```powershell
+npm run dev --workspace=client
+```
+
+**Do not run manual smoke tests against the real production database.** Verify the database name from `MONGO_URI` and use a dedicated test database and accounts. Confirm `GET /api/health` reports `database: "connected"` before testing registration. Test missing/foreign CV IDs, a duplicate application (409), an expired job, unverified company, and cross-employer status changes (403). Never open, merge, or commit to `main` as part of this validation.
+
+### Data Explorer during the viva
+
+1. MongoDB Atlas → Database → Browse Collections, select the **actual application database** from the Render `MONGO_URI` path (not whichever database appears first).
+2. Inspect `companies` and show the approved demo company, with `status: "Verified"`.
+3. Inspect `jobs` and show the newly published demo internship, its `company` reference, and `status: "Active"`.
+4. Inspect `applications` and show the demo student's `student` and `job` references, `cvSnapshot.name`, `fitScore`, and `status`.
+5. After employer updates the status, reload the application document in Atlas and refresh `/applications` as the student.
+6. Mask personal/sensitive fields and never expose `users.password`, token cookies or secrets.
+
+### Release signoff
+
+Automated build success alone is not an end-to-end pass. A final signoff requires: GitHub Actions tests green; Vercel deployment READY; Render on a compatible backend commit with MongoDB connected; successful role-based browser walkthrough; and authorized application records in the designated test database. Do not claim these tests passed until independently observed.
