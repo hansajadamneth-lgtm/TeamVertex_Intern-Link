@@ -1,6 +1,33 @@
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 
+const JOB_TEXT_LIMITS = {
+  title: 150,
+  location: 120,
+  duration: 80,
+  description: 10000,
+  requirements: 10000,
+  salary: 120,
+};
+const JOB_CATEGORIES = new Set(["IT", "Marketing", "Finance", "Engineering", "Other"]);
+const JOB_TYPES = new Set(["Full Time", "Part Time", "Remote", "Hybrid"]);
+const JOB_STATUSES = new Set(["Active", "Pending", "Closed", "Expired"]);
+
+function validJobFields(data) {
+  for (const [field, limit] of Object.entries(JOB_TEXT_LIMITS)) {
+    if (data[field] !== undefined &&
+        (typeof data[field] !== "string" || data[field].trim().length > limit)) return false;
+  }
+  if (data.category !== undefined && !JOB_CATEGORIES.has(data.category)) return false;
+  if (data.type !== undefined && !JOB_TYPES.has(data.type)) return false;
+  if (data.status !== undefined && !JOB_STATUSES.has(data.status)) return false;
+  if (data.skills !== undefined &&
+      (!Array.isArray(data.skills) || data.skills.length > 30 ||
+        !data.skills.every(s => typeof s === "string" && s.trim().length > 0 && s.trim().length <= 60))) return false;
+  return true;
+}
+
+
 /**
  * @desc    Get all active internship postings (with search, filtering, and pagination)
  * @route   GET /api/jobs
@@ -202,6 +229,13 @@ const createJob = async (req, res, next) => {
       parsedSkills = skills.split(",").map((s) => s.trim()).filter(Boolean);
     }
 
+    if (!validJobFields({
+      title: resolvedTitle, location: resolvedLocation, category, type, duration,
+      description: resolvedDescription, requirements, salary, status, skills: parsedSkills,
+    })) {
+      return res.status(400).json({ success: false, message: "Internship fields exceed allowed limits or contain invalid values." });
+    }
+
     // Employers must have a verified company before publishing any internship.
     const ownedCompany = req.user.role === "admin"
       ? (company ? await Company.findById(company) : null)
@@ -270,6 +304,15 @@ const updateJob = async (req, res, next) => {
 
     if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) return res.status(400).json({ success: false, message: "Provide valid internship update fields." });
 
+    const updates = { ...req.body };
+    if (typeof updates.skills === "string") {
+      updates.skills = updates.skills.split(",").map(s => s.trim()).filter(Boolean);
+    }
+    if (!validJobFields(updates) ||
+        (updates.deadline !== undefined && updates.deadline !== null && typeof updates.deadline !== "string")) {
+      return res.status(400).json({ success: false, message: "Invalid internship update fields or field lengths." });
+    }
+
     // Whitelist allowed update fields (ignore any attempts to overwrite postedBy)
     const allowedFields = [
       "title",
@@ -299,7 +342,7 @@ const updateJob = async (req, res, next) => {
       req.body.deadline = parsed;
     }
     allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) job[field] = req.body[field];
+      if (req.body[field] !== undefined) job[field] = field === "skills" ? updates.skills : req.body[field];
     });
 
     await job.save();
