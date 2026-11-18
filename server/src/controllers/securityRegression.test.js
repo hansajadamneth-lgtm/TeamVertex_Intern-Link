@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { registerUser, loginUser } = require("./authController");
 const { createCompany } = require("./companyController");
 const { createJob } = require("./jobController");
-const { createApplication, updateApplicationStatus } = require("./applicationController");
+const { createApplication, updateApplicationStatus, getApplicationsForJob } = require("./applicationController");
 
 function response() {
   return {
@@ -67,4 +67,23 @@ test("application rejects unsafe CV links before writing", async () => {
 });
 test("application status endpoint rejects missing body", async () => {
   await expectRejected(updateApplicationStatus, { params: { id: "507f191e810c19729de860ea" } });
+});
+
+test("application rejects invalid CV ID without touching MongoDB", async () => {
+  await expectRejected(createApplication, {
+    body: { jobId: "507f191e810c19729de860ea", cvId: "not-a-cv-id" },
+    user: { _id: "507f191e810c19729de860ea" },
+  });
+});
+test("applicant listing rejects malformed job IDs", async () => {
+  await expectRejected(getApplicationsForJob, {
+    params: { jobId: "incorrect" },
+    user: { _id: "507f191e810c19729de860ea", role: "employer" },
+  });
+});
+test("application status rejects malformed application IDs", async () => {
+  await expectRejected(updateApplicationStatus, {
+    params: { id: "incorrect" }, body: { status: "Accepted" },
+    user: { _id: "507f191e810c19729de860ea", role: "employer" },
+  });
 });
