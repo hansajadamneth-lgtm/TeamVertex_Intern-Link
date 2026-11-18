@@ -120,13 +120,29 @@ export function SiteNavbar() {
     }
   }
 
+  // Keep role-specific navigation actionable: CV and applications belong to
+  // student accounts, while employers and admins have separate portals.
+  const visibleMainLinks: NavLink[] = account?.role === "admin"
+    ? [
+        { label: "Dashboard", href: "/admin/dashboard" },
+        { label: "Companies", href: "/admin/companies" },
+        { label: "Students", href: "/admin/students" },
+        { label: "Internships", href: "/admin/internship-posts" },
+      ]
+    : account?.role === "employer"
+      ? [
+          { label: "Employer dashboard", href: "/employer" },
+          { label: "Find jobs", href: "/job-details" },
+        ]
+      : MAIN_LINKS;
+
   const moreLinks = [
     ...MORE_LINKS,
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [{ label: "Employer portal", href: "/employer" }] : []),
     ...(!account ? GUEST_LINKS : []),
   ];
-  const mainActive = MAIN_LINKS.some((link) => isActive(pathname, link.href));
+  const mainActive = visibleMainLinks.some((link) => isActive(pathname, link.href));
   const moreActive = moreLinks.some((link) => isActive(pathname, link.href)) || (!mainActive && pathname.startsWith("/admin/"));
   const currentPage = pageName(pathname);
 
@@ -153,7 +169,7 @@ export function SiteNavbar() {
           </Link>
 
           <nav aria-label="Main navigation" className="ml-auto hidden min-w-0 items-center gap-1 xl:flex">
-            {MAIN_LINKS.map((link) => {
+            {visibleMainLinks.map((link) => {
               const active = isActive(pathname, link.href);
               return (
                 <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} className={linkClasses(active)}>
@@ -221,7 +237,7 @@ export function SiteNavbar() {
         {mobileOpen && (
           <nav id="il-mobile-menu" aria-label="Mobile navigation" className="max-h-[70vh] overflow-y-auto border-t border-white/10 bg-[#0b1b3e] px-4 py-4 shadow-2xl xl:hidden">
             <div className="mx-auto grid max-w-3xl grid-cols-1 gap-1 sm:grid-cols-2">
-              {[...MAIN_LINKS, ...moreLinks].map((link) => {
+              {[...visibleMainLinks, ...moreLinks].map((link) => {
                 const active = isActive(pathname, link.href);
                 return <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} onClick={() => setMobileOpen(false)} className={linkClasses(active, true)}>{link.label}</Link>;
               })}
