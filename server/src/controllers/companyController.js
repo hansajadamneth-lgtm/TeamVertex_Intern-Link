@@ -272,6 +272,12 @@ const updateCompany = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid company update values or lengths." });
     }
 
+    const originalIdentity = {
+      name: company.name,
+      email: company.email,
+      website: company.website,
+    };
+
     // Whitelist editable fields (prevent employers from self-verifying status or changing owner)
     const allowedFields = ["name", "industry", "email", "website", "location", "description"];
     allowedFields.forEach((field) => {
@@ -280,11 +286,25 @@ const updateCompany = async (req, res, next) => {
       }
     });
 
+    // Identity edits need fresh administrator verification. Otherwise an
+    // approved employer could reuse its verified badge under a different name
+    // or domain without any review.
+    const identityFields = ["name", "email", "website"];
+    const identityChanged = identityFields.some((field) =>
+      req.body[field] !== undefined &&
+      req.body[field].trim().toLowerCase() !== String(originalIdentity[field] || "").trim().toLowerCase()
+    );
+    if (identityChanged && req.user.role !== "admin" && company.status === "Verified") {
+      company.status = "Pending";
+    }
+
     await company.save();
 
     return res.status(200).json({
       success: true,
-      message: "Company profile updated successfully!",
+      message: company.status === "Pending" && identityChanged
+        ? "Company identity updated. Administrator verification is required before publishing."
+        : "Company profile updated successfully!",
       data: company,
     });
   } catch (error) {
