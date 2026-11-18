@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { registerUser, loginUser } = require("./authController");
 const { createCompany } = require("./companyController");
-const { createJob } = require("./jobController");
+const { createJob, updateJob } = require("./jobController");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const Cv = require("../models/Cv");
@@ -78,6 +78,24 @@ test("job posting with past deadline gives 400 before writing", async () => {
     user: { _id: "507f191e810c19729de860ea", role: "employer" },
   });
 });
+test("closed internships cannot be reopened by an employer edit", async () => {
+  const originalFindById = Job.findById;
+  try {
+    Job.findById = async () => ({
+      _id: "507f191e810c19729de86061",
+      postedBy: { toString: () => "507f191e810c19729de86062" },
+      status: "Closed",
+    });
+    await expectRejected(updateJob, {
+      params: { id: "507f191e810c19729de86061" },
+      user: { _id: "507f191e810c19729de86062", role: "employer" },
+      body: { status: "Active" },
+    }, 409);
+  } finally {
+    Job.findById = originalFindById;
+  }
+});
+
 test("application without a job ID gives 400", async () => {
   await expectRejected(createApplication, { body: {}, user: { _id: "507f191e810c19729de860ea" } });
 });
