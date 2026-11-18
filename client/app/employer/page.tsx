@@ -5,8 +5,11 @@ import Link from "next/link";
 
 type Company = { _id: string; name: string; industry: string; email: string; status: string; location?: string; website?: string };
 type Job = { _id: string; title: string; status: string; companyName: string; location: string; applicationsCount: number };
-type Applicant = { _id: string; status: string; fitScore: number; createdAt: string;
-  student?: { fullName: string; email: string; education?: string; skills?: string[] } };
+type CvItem = { title?: string; organization?: string; period?: string; details?: string; url?: string };
+type CvSnapshot = { name?: string; headline?: string; summary?: string; skills?: string[];
+ education?: CvItem[]; experience?: CvItem[]; projects?: CvItem[] };
+type Applicant = { _id: string; status: string; fitScore: number; createdAt: string; coverLetter?: string; resumeUrl?: string;
+ cvSnapshot?: CvSnapshot; student?: { fullName: string; email: string; education?: string; skills?: string[] } };
 type Overview = { company: Company | null; jobs: Job[] };
 const emptyCompany = { name: "", industry: "", email: "", location: "", website: "", description: "" };
 const emptyJob = { title: "", category: "IT", type: "Full Time", location: "", duration: "3 Months",
@@ -23,6 +26,7 @@ export default function EmployerPage() {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState("");
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [openApplicant,setOpenApplicant]=useState<string>("");
 
   const refresh = useCallback(async () => {
     const r = await fetch("/api/employer/overview", { cache: "no-store" });
@@ -58,7 +62,7 @@ export default function EmployerPage() {
     finally { setBusy(false); }
   }
   async function viewApplicants(jobId: string) {
-    setSelectedJob(jobId); setError(""); setApplicants([]);
+    setSelectedJob(jobId); setOpenApplicant(""); setError(""); setApplicants([]);
     try {
       const r = await fetch(`/api/applications/job/${jobId}`, { cache: "no-store" });
       const j = await r.json();
@@ -138,13 +142,42 @@ export default function EmployerPage() {
         {selectedJob && <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Applications for selected internship</h2>
           {!applicants.length && <p className="mt-4 text-sm text-slate-500">No applications received yet.</p>}
-          {applicants.map(app=><div key={app._id} className="mt-4 flex flex-wrap items-center justify-between gap-4 border-b pb-4 text-sm">
-            <div><p className="font-semibold">{app.student?.fullName || "Student"}</p><p>{app.student?.email}</p><p className="text-slate-500">{app.student?.education} · {app.fitScore}% skills match</p></div>
-            <label className="text-xs font-semibold">Application status
-              <select disabled={busy} value={app.status} onChange={e=>updateApplicant(app._id,e.target.value)}
+          {applicants.map(app=><article key={app._id} className="mt-4 border-b pb-5 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+             <div><p className="font-semibold">{app.student?.fullName || "Student"}</p>
+              <p>{app.student?.email}</p>
+              <p className="text-slate-500">Applied {new Date(app.createdAt).toLocaleDateString()} · {app.fitScore}% skills match</p>
+             </div>
+             <div className="flex flex-wrap items-center gap-3">
+              <button type="button" aria-expanded={openApplicant===app._id} onClick={()=>setOpenApplicant(x=>x===app._id?"":app._id)}
+               className="rounded-lg border px-3 py-2 font-semibold">{openApplicant===app._id?"Hide details":"Review submitted CV"}</button>
+              <label className="text-xs font-semibold">Status
+               <select disabled={busy} value={app.status} onChange={e=>updateApplicant(app._id,e.target.value)}
                 className="ml-2 rounded-lg border px-3 py-2 text-sm">{statuses.map(s=><option key={s}>{s}</option>)}</select>
-            </label>
-          </div>)}
+              </label>
+             </div>
+            </div>
+            {openApplicant===app._id&&<div className="mt-4 space-y-4 rounded-xl bg-slate-50 p-5">
+              <div><h3 className="font-semibold">Submitted CV: {app.cvSnapshot?.name||"Not available (older application)"}</h3>
+               {app.cvSnapshot?.headline&&<p className="mt-1">{app.cvSnapshot.headline}</p>}
+               {app.cvSnapshot?.summary&&<p className="mt-2 whitespace-pre-wrap text-slate-600">{app.cvSnapshot.summary}</p>}
+               {Boolean(app.cvSnapshot?.skills?.length)&&<p className="mt-2"><strong>Skills:</strong> {app.cvSnapshot?.skills?.join(", ")}</p>}
+              </div>
+              {(["education","experience","projects"] as const).map(section=>Boolean(app.cvSnapshot?.[section]?.length)&&
+               <section key={section}><h4 className="mb-2 font-semibold capitalize">{section}</h4>
+                {app.cvSnapshot?.[section]?.map((item,index)=><div key={index} className="mt-2 border-l-2 border-orange-200 pl-3">
+                  <p className="font-medium">{item.title} {item.organization&&"· "+item.organization}</p>
+                  {item.period&&<p className="text-xs text-slate-500">{item.period}</p>}
+                  {item.details&&<p className="mt-1 whitespace-pre-wrap text-slate-600">{item.details}</p>}
+                  {item.url&&/^https:\/\//i.test(item.url)&&<a href={item.url} target="_blank" rel="noopener noreferrer" className="text-orange-700 underline">Project link</a>}
+                 </div>)}
+               </section>)}
+              <section><h4 className="font-semibold">Cover letter</h4>
+               <p className="mt-2 whitespace-pre-wrap text-slate-600">{app.coverLetter||"No cover letter submitted."}</p>
+              </section>
+              {app.resumeUrl&&/^https:\/\//i.test(app.resumeUrl)&&<a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-block font-semibold text-orange-700 underline">Open external resume</a>}
+            </div>}
+          </article>)}
         </section>}
       </>}
     </div>
