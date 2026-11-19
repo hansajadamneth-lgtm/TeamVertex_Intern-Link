@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 const User = require("../models/User");
 
-const GENERIC_RESPONSE = "If an active account exists for this email, password reset instructions will be sent.";
+const GENERIC_RESPONSE = "If an active account exists and email delivery is available, password reset instructions will be sent.";
 const RESET_LIFETIME_MS = 15 * 60 * 1000;
 
 function resetConfig() {
@@ -76,9 +76,8 @@ async function requestPasswordReset(req, res, next) {
         { $set: { resetPasswordToken: null, resetPasswordExpire: null } }
       );
       console.error("Password reset email delivery failed.");
-      return res.status(503).json({
-        success: false, message: "Password recovery email is temporarily unavailable. Please try later.",
-      });
+      // Do not reveal account existence through different email-delivery errors.
+      return res.json({ success: true, message: GENERIC_RESPONSE });
     }
 
     return res.json({ success: true, message: GENERIC_RESPONSE });
