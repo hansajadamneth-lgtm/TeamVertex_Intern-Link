@@ -1,5 +1,6 @@
 const Cv=require("../models/Cv");
 const User=require("../models/User");
+const mongoose=require("mongoose");
 const fields=["name","headline","summary","skills","education","experience","projects"];
 const txt=(x,n=3000)=>String(x??"").trim().slice(0,n);
 function clean(body){
@@ -37,6 +38,7 @@ async function create(req,res,next){try{
  res.status(201).json({success:true,data:cv});
 }catch(e){next(e)}}
 async function update(req,res,next){try{
+ if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({success:false,message:"Invalid CV ID."});
  const cv=await Cv.findOne({_id:req.params.id,student:req.user._id});
  if(!cv)return res.status(404).json({success:false,message:"CV not found."});
  const data=clean(req.body||{});
@@ -51,6 +53,7 @@ async function update(req,res,next){try{
  res.json({success:true,data:cv});
 }catch(e){next(e)}}
 async function remove(req,res,next){try{
+ if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({success:false,message:"Invalid CV ID."});
  const cv=await Cv.findOneAndDelete({_id:req.params.id,student:req.user._id});
  if(!cv)return res.status(404).json({success:false,message:"CV not found."});
  if(cv.isPrimary){
