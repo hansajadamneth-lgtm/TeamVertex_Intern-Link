@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { registerUser, loginUser } = require("./authController");
-const { createCompany, updateCompany } = require("./companyController");
-const { createJob, updateJob } = require("./jobController");
+const { createCompany, updateCompany, getCompanyById, updateCompanyStatus } = require("./companyController");
+const { createJob, updateJob, getJobById, deleteJob } = require("./jobController");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const Cv = require("../models/Cv");
@@ -108,6 +108,30 @@ test("valid password reset increments the session version and clears auth cookie
   } finally {
     User.findOneAndUpdate = oldFind;
   }
+});
+
+test("malformed public job and company IDs return 400 without database reads", async () => {
+  await expectRejected(getJobById, { params: { id: "not-a-valid-id" } });
+  await expectRejected(getCompanyById, { params: { id: "not-a-valid-id" } });
+});
+test("malformed protected job and company IDs return 400 without database reads", async () => {
+  const user = { _id: "507f191e810c19729de860ea", role: "admin" };
+  await expectRejected(updateJob, { params: { id: "invalid" }, user, body: { title: "Test" } });
+  await expectRejected(deleteJob, { params: { id: "invalid" }, user });
+  await expectRejected(updateCompany, { params: { id: "invalid" }, user, body: { name: "Test" } });
+  await expectRejected(updateCompanyStatus, { params: { id: "invalid" }, user, body: { status: "Verified" } });
+});
+test("malformed CV edit and delete IDs return 400", async () => {
+  const cv = require("./cvController");
+  const user = { _id: "507f191e810c19729de860ea", role: "student" };
+  await expectRejected(cv.update, { params: { id: "invalid" }, user, body: { name: "My CV" } });
+  await expectRejected(cv.remove, { params: { id: "invalid" }, user });
+});
+test("admin posting rejects malformed company ID before querying MongoDB", async () => {
+  await expectRejected(createJob, {
+    user: { _id: "507f191e810c19729de860ea", role: "admin" },
+    body: { title: "Demo Intern", location: "Colombo", description: "Test internship", company: "invalid" },
+  });
 });
 
 test("registration without a JSON body gives 400, not 500", async () => {
