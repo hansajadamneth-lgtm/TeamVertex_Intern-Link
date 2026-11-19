@@ -1,5 +1,6 @@
 const Company = require("../models/Company");
 const User = require("../models/User");
+const mongoose = require("mongoose");
 
 /**
  * @desc    Get directory of companies (verified by default for public)
@@ -78,6 +79,7 @@ const getCompanies = async (req, res, next) => {
  */
 const getCompanyById = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company ID." });
     const company = await Company.findById(req.params.id).populate(
       "owner",
       "fullName"
@@ -195,6 +197,7 @@ const createCompany = async (req, res, next) => {
  */
 const updateCompanyStatus = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company ID." });
     const { status } = req.body || {};
 
     const allowedStatuses = ["Verified", "Pending", "Suspended"];
@@ -233,6 +236,7 @@ const updateCompanyStatus = async (req, res, next) => {
  */
 const updateCompany = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid company ID." });
     const company = await Company.findById(req.params.id);
 
     if (!company) {
