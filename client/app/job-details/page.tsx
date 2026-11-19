@@ -21,6 +21,7 @@ export default function JobsPage() {
  const [appliedIds,setAppliedIds]=useState<string[]>([]);
  const [saved,setSaved]=useState<string[]>([]);
  const [savingJob,setSavingJob]=useState(false);
+ const [accountRole,setAccountRole]=useState<"student"|"employer"|"admin"|"guest"|"loading">("loading");
  useEffect(()=>{
   const run=async()=>{
    try{const r=await fetch("/api/jobs?limit=50",{cache:"no-store"}),j=await r.json();
@@ -33,19 +34,40 @@ export default function JobsPage() {
    }catch(e){setError(e instanceof Error?e.message:"Unable to load jobs.");}
    finally{setLoading(false);}
   };run();
-  fetch("/api/saved-jobs",{cache:"no-store"}).then(async r=>r.ok?r.json():null)
-    .then(j=>{if(j?.success)setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id).filter((id: string | undefined): id is string => Boolean(id)));})
-    .catch(()=>{});
+
  },[]);
  useEffect(()=>{
-  fetch("/api/cvs",{cache:"no-store"}).then(async r=>r.ok?r.json():null).then(j=>{
-   if(j?.success){const versions:Cv[]=j.data||[];setCvs(versions);
-    setSelectedCv(versions.find(v=>v.isPrimary)?._id||versions[0]?._id||"");}
-  }).catch(()=>{});
-  fetch("/api/applications/me",{cache:"no-store"}).then(async r=>r.ok?r.json():null)
-   .then(j=>{if(j?.success)setAppliedIds((j.data||[]).map((a:{job?:{_id?:string}|string})=>
-    typeof a.job==="string"?a.job:a.job?._id).filter((id:unknown):id is string=>typeof id==="string"));})
-   .catch(()=>{});
+  let active=true;
+  fetch("/api/auth/me",{cache:"no-store"}).then(async r=>r.ok?r.json():null).then(async data=>{
+   if(!active)return;
+   const role=data?.success&&["student","employer","admin"].includes(data.user?.role)
+    ? data.user.role as "student"|"employer"|"admin" : "guest";
+   setAccountRole(role);
+   if(role!=="student")return;
+   const [cvRes,applicationRes,savedRes]=await Promise.allSettled([
+    fetch("/api/cvs",{cache:"no-store"}),fetch("/api/applications/me",{cache:"no-store"}),fetch("/api/saved-jobs",{cache:"no-store"}),
+   ]);
+   if(!active)return;
+   if(cvRes.status==="fulfilled"&&cvRes.value.ok){
+    const j=await cvRes.value.json();if(active&&j.success){
+     const versions:Cv[]=j.data||[];setCvs(versions);
+     setSelectedCv(versions.find(v=>v.isPrimary)?._id||versions[0]?._id||"");
+    }
+   }
+   if(applicationRes.status==="fulfilled"&&applicationRes.value.ok){
+    const j=await applicationRes.value.json();if(active&&j.success){
+     setAppliedIds((j.data||[]).map((a:{job?:{_id?:string}|string})=>
+      typeof a.job==="string"?a.job:a.job?._id).filter((id:unknown):id is string=>typeof id==="string"));
+    }
+   }
+   if(savedRes.status==="fulfilled"&&savedRes.value.ok){
+    const j=await savedRes.value.json();if(active&&j.success){
+     setSaved((j.data||[]).map((x:{job?:{_id?:string}})=>x.job?._id)
+       .filter((id: string | undefined): id is string=>Boolean(id)));
+    }
+   }
+  }).catch(()=>{if(active)setAccountRole("guest");});
+  return()=>{active=false;};
  },[]);
  const filtered=jobs.filter(j=>(category==="All"||j.category===category)&&
   [j.title,j.companyName,j.location,...(j.skills||[])].join(" ").toLowerCase().includes(search.toLowerCase()));
@@ -81,8 +103,11 @@ export default function JobsPage() {
  };
  return <main className="il-page-enter min-h-screen bg-[#f6f8fc] text-[#17233b]">
   <header className="bg-[#0b142b] px-5 py-4 text-white"><nav className="mx-auto flex max-w-6xl items-center justify-between">
-   <Link href="/home" className="font-semibold">InternLink</Link><div className="flex gap-4 text-sm">
-    <Link href="/cv-builder">CV Builder</Link><Link href="/recommendations">Matches</Link><Link href="/applications">Applications</Link>
+   <Link href={accountRole==="employer"?"/employer":accountRole==="admin"?"/admin/dashboard":"/home"} className="font-semibold">InternLink</Link><div className="flex gap-4 text-sm">
+    {accountRole==="student" ? <>
+     <Link href="/cv-builder">CV Builder</Link><Link href="/recommendations">Matches</Link><Link href="/applications">Applications</Link>
+    </> : accountRole==="employer" ? <Link href="/employer">Employer dashboard</Link>
+    : accountRole==="admin" ? <Link href="/admin/dashboard">Admin dashboard</Link> : null}
    </div></nav></header>
   <section className="mx-auto max-w-6xl px-5 py-9"><h1 className="text-3xl font-bold">Discover internships</h1>
    <p className="mt-2 text-sm text-slate-500">Browse active opportunities from verified employers. Apply without leaving InternLink.</p>
@@ -109,6 +134,7 @@ export default function JobsPage() {
      <p className="mt-2 text-sm text-slate-500">{job.type} · {job.duration||"Duration not specified"}</p>
      {job.salary&&<p className="mt-3 text-sm">Compensation: {job.salary}</p>}
      {job.deadline&&<p className="mt-2 text-sm">Deadline: {new Date(job.deadline).toLocaleDateString()}</p>}
+     {accountRole==="student" ? <>
      <div className="mt-6 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
       <label className="block text-sm font-semibold">CV to submit
        <select value={selectedCv} onChange={e=>setSelectedCv(e.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3">
@@ -133,6 +159,13 @@ export default function JobsPage() {
        <Heart size={17} fill={saved.includes(job._id)?"currentColor":"none"}/>
        {savingJob?"Updating...":saved.includes(job._id)?"Remove from saved jobs":"Save internship"}
      </button>
+     </> : accountRole==="employer" ? <div className="mt-6 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-900">
+      Company accounts manage vacancies and review student applications from the <Link href="/employer" className="font-bold underline">Employer dashboard</Link>.
+     </div> : accountRole==="admin" ? <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+      Manage internships in the <Link href="/admin/internship-posts" className="font-bold underline">Admin portal</Link>.
+     </div> : accountRole==="guest" ? <div className="mt-6 rounded-xl border bg-slate-50 p-4 text-sm text-slate-700">
+      <Link href="/login" className="font-bold text-orange-700 underline">Sign in as a student</Link> to save internships and apply.
+     </div> : <p className="mt-6 text-sm text-slate-500">Checking account permissions...</p>}
      <h3 className="mt-7 border-b pb-2 text-lg font-semibold">Description</h3>
      <p className="mt-3 whitespace-pre-wrap text-sm leading-7">{job.description}</p>
      <h3 className="mt-6 border-b pb-2 text-lg font-semibold">Requirements</h3>
