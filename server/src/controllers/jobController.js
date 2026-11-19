@@ -1,5 +1,6 @@
 const Job = require("../models/Job");
 const Company = require("../models/Company");
+const mongoose = require("mongoose");
 
 const JOB_TEXT_LIMITS = {
   title: 150,
@@ -136,6 +137,7 @@ const getJobs = async (req, res, next) => {
  */
 const getJobById = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid internship ID." });
     const job = await Job.findById(req.params.id)
       .populate("company", "name industry website location status description")
       .populate("postedBy", "fullName");
@@ -236,6 +238,10 @@ const createJob = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Internship fields exceed allowed limits or contain invalid values." });
     }
 
+    if (req.user.role === "admin" && company != null && !mongoose.isValidObjectId(company)) {
+      return res.status(400).json({ success: false, message: "Select a valid verified company." });
+    }
+
     // Employers must have a verified company before publishing any internship.
     const ownedCompany = req.user.role === "admin"
       ? (company ? await Company.findById(company) : null)
@@ -281,6 +287,7 @@ const createJob = async (req, res, next) => {
  */
 const updateJob = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid internship ID." });
     let job = await Job.findById(req.params.id);
 
     if (!job) {
@@ -374,6 +381,7 @@ const updateJob = async (req, res, next) => {
  */
 const deleteJob = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid internship ID." });
     const job = await Job.findById(req.params.id);
 
     if (!job) {
