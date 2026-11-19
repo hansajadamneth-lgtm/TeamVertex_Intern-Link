@@ -122,30 +122,39 @@ export function SiteNavbar() {
 
   // Keep role-specific navigation actionable: CV and applications belong to
   // student accounts, while employers and admins have separate portals.
-  const visibleMainLinks: NavLink[] = account?.role === "admin"
-    ? [
-        { label: "Dashboard", href: "/admin/dashboard" },
-        { label: "Companies", href: "/admin/companies" },
-        { label: "Students", href: "/admin/students" },
-        { label: "Internships", href: "/admin/internship-posts" },
-      ]
-    : account?.role === "employer"
+  const homeHref = account?.role === "admin" ? "/admin/dashboard"
+    : account?.role === "employer" ? "/employer" : "/home";
+  const visibleMainLinks: NavLink[] = !authLoaded
+    ? []
+    : account?.role === "admin"
       ? [
-          { label: "Employer dashboard", href: "/employer" },
-          { label: "Find jobs", href: "/job-details" },
+          { label: "Dashboard", href: "/admin/dashboard" },
+          { label: "Companies", href: "/admin/companies" },
+          { label: "Students", href: "/admin/students" },
+          { label: "Internships", href: "/admin/internship-posts" },
         ]
-      : MAIN_LINKS;
+      : account?.role === "employer"
+        ? [
+            { label: "Dashboard", href: "/employer" },
+            { label: "Company profile", href: "/employer#company-profile" },
+            { label: "Post internship", href: "/employer#post-internship" },
+            { label: "My jobs", href: "/employer#my-jobs" },
+          ]
+        : MAIN_LINKS;
 
-  const moreLinks = [
-    ...MORE_LINKS.filter((link) => account?.role === "student" ||
-      !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href)),
+  const moreLinks: NavLink[] = [
+    ...(account?.role === "student" ? MORE_LINKS : MORE_LINKS.filter(link =>
+      !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href))),
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
-    ...(account?.role === "employer" ? [{ label: "Employer portal", href: "/employer" }] : []),
+    ...(account?.role === "employer" ? [
+      { label: "Review applicants", href: "/employer#my-jobs" },
+      { label: "Browse internships", href: "/job-details" },
+    ] : []),
     ...(!account ? GUEST_LINKS : []),
   ].filter((link) => !visibleMainLinks.some((main) => main.href === link.href));
-  const mainActive = visibleMainLinks.some((link) => isActive(pathname, link.href));
-  const moreActive = moreLinks.some((link) => isActive(pathname, link.href)) || (!mainActive && pathname.startsWith("/admin/"));
-  const currentPage = pageName(pathname);
+  const mainActive = visibleMainLinks.some((link) => isActive(pathname, link.href.split("#")[0]));
+  const moreActive = moreLinks.some((link) => isActive(pathname, link.href.split("#")[0])) || (!mainActive && pathname.startsWith("/admin/"));
+  const currentPage = pathname === "/employer" ? "Employer dashboard" : pageName(pathname);
 
   function linkClasses(active: boolean, mobile = false) {
     return [
@@ -162,7 +171,7 @@ export function SiteNavbar() {
     <div className="il-site-navigation sticky top-0 z-50 w-full print:hidden">
       <header className="relative z-20 border-b border-white/10 bg-[#0b1b3e]/95 shadow-[0_5px_25px_-17px_rgba(0,0,0,.65)] backdrop-blur-xl">
         <div className="mx-auto flex min-h-[76px] w-full max-w-[1500px] items-center gap-5 px-4 sm:px-6 lg:px-9">
-          <Link href="/home" aria-label="InternLink Home" className="flex shrink-0 items-center gap-2.5 rounded-xl p-1 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400">
+          <Link href={homeHref} aria-label="InternLink Home" className="flex shrink-0 items-center gap-2.5 rounded-xl p-1 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white p-1 shadow-[0_8px_18px_-8px_rgba(0,0,0,.4)] ring-2 ring-white/10">
               <Image src="/internlink-logo.png" alt="" width={38} height={38} className="h-full w-full rounded-full object-contain" />
             </span>
@@ -171,7 +180,7 @@ export function SiteNavbar() {
 
           <nav aria-label="Main navigation" className="ml-auto hidden min-w-0 items-center gap-1 xl:flex">
             {visibleMainLinks.map((link) => {
-              const active = isActive(pathname, link.href);
+              const active = isActive(pathname, link.href.split("#")[0]);
               return (
                 <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} className={linkClasses(active)}>
                   {link.label}
@@ -252,12 +261,12 @@ export function SiteNavbar() {
         <div aria-hidden="true" className="pointer-events-none absolute -top-8 left-[14%] h-16 w-56 rounded-full bg-[#f5821f]/10 blur-2xl" />
         <nav aria-label="Breadcrumb" className="relative mx-auto flex min-h-11 max-w-[1500px] items-center gap-2.5 overflow-hidden px-5 py-1.5 text-xs font-medium text-white sm:px-7 lg:px-10">
           <Link
-            href="/home"
+            href={homeHref}
             aria-label="Home"
-            aria-current={pathname === "/home" ? "page" : undefined}
+            aria-current={pathname === homeHref ? "page" : undefined}
             className={
               "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 " +
-              (pathname === "/home"
+              (pathname === homeHref
                 ? "border-[#f5821f]/50 bg-[#f5821f]/20 font-bold text-orange-100 shadow-[0_0_15px_-7px_rgba(245,130,31,0.9)]"
                 : "border-white/15 bg-white/10 text-white/85 hover:border-orange-300/45 hover:bg-white/20 hover:text-white")
             }
