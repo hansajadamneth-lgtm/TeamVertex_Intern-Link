@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, Home, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Home, LogOut, Menu, Settings, UserRound, X } from "lucide-react";
 
 type NavLink = { label: string; href: string };
 type Account = { fullName?: string; role?: string };
@@ -54,6 +54,20 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+function roleLabel(role?: string) {
+  if (role === "student") return "Student";
+  if (role === "employer") return "Company / Employer";
+  if (role === "admin") return "Admin";
+  return "Account";
+}
+
+function initials(fullName?: string) {
+  const words = (fullName || "").trim().split(/\s+/).filter(Boolean);
+  return words.length
+    ? words.slice(0, 2).map((word) => Array.from(word)[0]?.toUpperCase() || "").join("")
+    : "U";
+}
+
 function pageName(pathname: string) {
   const known: NavLink[] = [
     ...MAIN_LINKS,
@@ -73,12 +87,16 @@ export function SiteNavbar() {
   const pathname = usePathname() || "/home";
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [locationHash, setLocationHash] = useState("");
   const [logoutError, setLogoutError] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -95,10 +113,15 @@ export function SiteNavbar() {
 
   useEffect(() => {
     function closeOnOutside(event: MouseEvent) {
-      if (event.target instanceof Node && !moreRef.current?.contains(event.target)) setMoreOpen(false);
+      if (event.target instanceof Node) {
+        if (!moreRef.current?.contains(event.target)) setMoreOpen(false);
+        if (!accountRef.current?.contains(event.target)) setAccountOpen(false);
+      }
     }
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (accountRef.current?.contains(document.activeElement)) accountButtonRef.current?.focus();
+        setAccountOpen(false);
         setMoreOpen(false);
         setMobileOpen(false);
       }
@@ -119,6 +142,8 @@ export function SiteNavbar() {
   }, [pathname]);
 
   async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
     setLogoutError("");
     try {
       const response = await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -126,10 +151,13 @@ export function SiteNavbar() {
       setAccount(null);
       setMobileOpen(false);
       setMoreOpen(false);
+      setAccountOpen(false);
       router.replace("/login");
       router.refresh();
     } catch {
       setLogoutError("Sign out failed. Please try again.");
+    } finally {
+      setSigningOut(false);
     }
   }
 
@@ -156,9 +184,10 @@ export function SiteNavbar() {
         : account?.role === "student" ? MAIN_LINKS : PUBLIC_LINKS;
 
   const moreLinks: NavLink[] = [
-    ...(account?.role === "student" ? MORE_LINKS :
-      MORE_LINKS.filter(link => account
-        ? !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href)
+    ...(account?.role === "student"
+      ? MORE_LINKS.filter(link => !["/profile", "/settings"].includes(link.href))
+      : MORE_LINKS.filter(link => account
+        ? !["/saved-jobs", "/notifications", "/cover-letter", "/profile", "/settings"].includes(link.href)
         : ["/about", "/contact", "/privacy-policy", "/terms-of-service"].includes(link.href))),
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [
@@ -178,6 +207,8 @@ export function SiteNavbar() {
   const mainActive = visibleMainLinks.some(isCurrentLink);
   const moreActive = moreLinks.some(isCurrentLink) || (!mainActive && pathname.startsWith("/admin/"));
   const currentPage = pathname === "/employer" ? "Employer dashboard" : pageName(pathname);
+  const displayName = account?.fullName?.trim() || "My account";
+  const displayRole = roleLabel(account?.role);
 
   function linkClasses(active: boolean, mobile = false) {
     return [
@@ -216,7 +247,7 @@ export function SiteNavbar() {
                 aria-haspopup="true"
                 aria-expanded={moreOpen}
                 aria-controls="il-more-menu"
-                onClick={() => setMoreOpen((value) => !value)}
+                onClick={() => { setAccountOpen(false); setMoreOpen((value) => !value); }}
                 className={linkClasses(moreActive)}
               >
                 More <ChevronDown className={"ml-1 h-4 w-4 transition-transform duration-200 " + (moreOpen ? "rotate-180" : "")} aria-hidden="true" />
@@ -246,9 +277,52 @@ export function SiteNavbar() {
 
           <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-3">
             {authLoaded && (account ? (
-              <button type="button" onClick={signOut} className="hidden rounded-full bg-[#f5821f] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#e77210] hover:shadow-[0_7px_20px_-8px_rgba(245,130,31,.75)] sm:inline-flex">
-                <LogOut className="mr-2 h-4 w-4" aria-hidden="true" /> Sign out
-              </button>
+              <div className="relative" ref={accountRef}>
+                <button
+                  ref={accountButtonRef}
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={accountOpen}
+                  aria-controls="il-account-menu"
+                  aria-label={`Account: ${displayName}, ${displayRole}. Open account menu`}
+                  onClick={() => { setMoreOpen(false); setMobileOpen(false); setAccountOpen(value => !value); }}
+                  className="inline-flex max-w-[178px] items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-2 py-1.5 text-left text-white shadow-sm transition-all hover:border-orange-300/60 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 sm:max-w-[240px] sm:gap-2.5 sm:px-3"
+                >
+                  <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f5821f] to-[#db5b18] text-xs font-extrabold text-white ring-2 ring-white/20">
+                    {initials(account.fullName)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold leading-5 sm:text-sm">{displayName}</span>
+                    <span className="block truncate text-[10px] font-semibold leading-4 text-orange-200 sm:text-xs">{displayRole}</span>
+                  </span>
+                  <ChevronDown aria-hidden="true" className={`h-4 w-4 shrink-0 text-white/80 transition-transform ${accountOpen ? "rotate-180" : ""}`} />
+                </button>
+                {accountOpen && (
+                  <div
+                    id="il-account-menu"
+                    aria-label="Account options"
+                    className="absolute right-0 top-[calc(100%+10px)] z-[70] w-[min(88vw,280px)] rounded-2xl border border-slate-200 bg-white p-2 text-slate-900 shadow-[0_25px_70px_-20px_rgba(11,27,62,.5)]"
+                  >
+                    <div className="border-b border-slate-100 px-3 py-3">
+                      <p className="truncate text-sm font-bold text-[#17233b]">{displayName}</p>
+                      <p className="mt-0.5 text-xs font-semibold text-orange-700">{displayRole}</p>
+                    </div>
+                    <Link href="/profile" onClick={() => setAccountOpen(false)}
+                      className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-800 focus-visible:outline-2 focus-visible:outline-orange-400">
+                      <UserRound aria-hidden="true" className="h-4 w-4" /> My profile
+                    </Link>
+                    <Link href="/settings" onClick={() => setAccountOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-800 focus-visible:outline-2 focus-visible:outline-orange-400">
+                      <Settings aria-hidden="true" className="h-4 w-4" /> Account settings
+                    </Link>
+                    <div className="my-2 border-t border-slate-100" />
+                    <button type="button" onClick={signOut} disabled={signingOut}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-400 disabled:opacity-50">
+                      <LogOut aria-hidden="true" className="h-4 w-4" /> {signingOut ? "Signing out..." : "Sign out"}
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link href="/login" aria-current={pathname === "/login" ? "page" : undefined} className={"hidden rounded-full px-5 py-2.5 text-sm font-bold transition-all sm:inline-flex " + (pathname === "/login" ? "il-nav-active text-white" : "bg-[#f5821f] text-white hover:bg-[#e77210]")}>
                 Sign in
@@ -256,7 +330,7 @@ export function SiteNavbar() {
             ))}
             <button
               type="button"
-              onClick={() => setMobileOpen((value) => !value)}
+              onClick={() => { setAccountOpen(false); setMoreOpen(false); setMobileOpen((value) => !value); }}
               aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileOpen}
               aria-controls="il-mobile-menu"
@@ -270,11 +344,26 @@ export function SiteNavbar() {
         {mobileOpen && (
           <nav id="il-mobile-menu" aria-label="Mobile navigation" className="max-h-[70vh] overflow-y-auto border-t border-white/10 bg-[#0b1b3e] px-4 py-4 shadow-2xl xl:hidden">
             <div className="mx-auto grid max-w-3xl grid-cols-1 gap-1 sm:grid-cols-2">
+              {account && (
+                <div className="mb-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 sm:col-span-2">
+                  <p className="truncate text-sm font-bold text-white">{displayName}</p>
+                  <p className="text-xs font-semibold text-orange-200">{displayRole}</p>
+                </div>
+              )}
               {[...visibleMainLinks, ...moreLinks].map((link) => {
                 const active = isActive(pathname, link.href);
                 return <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} onClick={() => setMobileOpen(false)} className={linkClasses(active, true)}>{link.label}</Link>;
               })}
-              {account && <button type="button" onClick={signOut} className="rounded-xl px-5 py-3 text-left text-sm font-bold text-orange-200 hover:bg-white/10">Sign out</button>}
+              {account && (
+                <>
+                  <Link href="/profile" onClick={() => setMobileOpen(false)} className={linkClasses(isActive(pathname, "/profile"), true)}>My profile</Link>
+                  <Link href="/settings" onClick={() => setMobileOpen(false)} className={linkClasses(isActive(pathname, "/settings"), true)}>Account settings</Link>
+                  <button type="button" onClick={signOut} disabled={signingOut}
+                    className="rounded-xl px-5 py-3 text-left text-sm font-bold text-orange-200 hover:bg-white/10 disabled:opacity-50">
+                    {signingOut ? "Signing out..." : "Sign out"}
+                  </button>
+                </>
+              )}
             </div>
           </nav>
         )}
