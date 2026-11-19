@@ -85,6 +85,12 @@ app.get("/api/health", (req, res) => {
       ? "InternLink API and MongoDB are connected"
       : "InternLink API is running but MongoDB is not connected",
     database: databaseConnected ? "connected" : "disconnected",
+    // Render supplies these non-secret Git metadata fields. They let us
+    // compare the running backend with the reviewed feature-branch commit.
+    deployment: {
+      branch: process.env.RENDER_GIT_BRANCH || null,
+      commit: process.env.RENDER_GIT_COMMIT || null,
+    },
     timestamp: new Date().toISOString(),
   });
 });
