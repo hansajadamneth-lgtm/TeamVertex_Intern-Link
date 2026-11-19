@@ -42,14 +42,16 @@ export default function EditProfilePage() {
     try {
       const response = await fetch("/api/auth/me", {
         method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: profile.fullName, phone: profile.phone,
-          location: profile.location, education: profile.education, bio: profile.bio, skills }),
+        body: JSON.stringify(profile.role==="student"
+          ? { fullName: profile.fullName, phone: profile.phone, location: profile.location,
+              education: profile.education, bio: profile.bio, skills }
+          : { fullName: profile.fullName, phone: profile.phone, location: profile.location, bio: profile.bio }),
       });
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(json.message || "Could not save profile.");
       setProfile({ ...blank, ...json.user });
       setSkillsText((json.user.skills || []).join(", "));
-      setNotice("Profile saved. Your new skills will improve internship matching.");
+      setNotice(profile.role==="student" ? "Profile saved. Your skills will improve internship matching." : "Account profile updated successfully.");
     } catch (err) { setError(err instanceof Error ? err.message : "Unable to save profile."); }
     finally { setSaving(false); }
   }
@@ -65,14 +67,14 @@ export default function EditProfilePage() {
       <section className="mx-auto max-w-2xl rounded-3xl border border-slate-100 bg-white p-6 shadow-lg sm:p-10">
         <Link href="/profile" className="text-sm font-semibold text-[#ff7417]">← Back to profile</Link>
         <h1 className="mt-4 text-3xl font-bold">Edit your profile</h1>
-        <p className="mt-2 text-sm text-slate-500">Keep your details and skills current for more relevant internship recommendations.</p>
+        <p className="mt-2 text-sm text-slate-500">{profile.role==="student" ? "Keep your details and skills current for more relevant internship recommendations." : "Update your account contact details. Company information and vacancy management are in the Employer dashboard."}</p>
         {loading && <p className="mt-6 text-sm">Loading your profile...</p>}
         {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
         {notice && <p role="status" className="mt-5 rounded-xl bg-green-50 p-4 text-sm text-green-800">{notice}</p>}
         {!loading && profile.email && (
           <form onSubmit={save} className="mt-7 space-y-5">
             <div className="rounded-xl bg-slate-50 p-4 text-sm"><span className="font-semibold">Account:</span> {profile.email} · {profile.role} <span className="block text-xs text-slate-500">Email and role cannot be changed here.</span></div>
-            {fields.map(({ key, label, max }) => (
+            {fields.filter(field => profile.role==="student" || field.key!=="education").map(({ key, label, max }) => (
               <label key={key} className="block text-sm font-medium">
                 {label}
                 <input required={key === "fullName"} maxLength={max} value={profile[key] || ""}
@@ -80,12 +82,12 @@ export default function EditProfilePage() {
                   className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500" />
               </label>
             ))}
-            <label className="block text-sm font-medium">Skills (comma-separated)
+            {profile.role==="student" && <label className="block text-sm font-medium">Skills (comma-separated)
               <textarea value={skillsText} onChange={e => setSkillsText(e.target.value)}
                 rows={3} placeholder="React, JavaScript, Python, SQL"
                 className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500" />
-            </label>
-            <label className="block text-sm font-medium">About yourself
+            </label>}
+            <label className="block text-sm font-medium">{profile.role==="student"?"About yourself":"About your account"}
               <textarea maxLength={1200} value={profile.bio || ""} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
                 rows={4} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500" />
             </label>
