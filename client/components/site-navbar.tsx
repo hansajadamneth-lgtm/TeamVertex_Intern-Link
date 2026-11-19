@@ -77,6 +77,9 @@ function pageName(pathname: string) {
     { label: "Add internship", href: "/admin/internship-posts/add" },
     { label: "Manage companies", href: "/manage-companies" },
     { label: "Employer dashboard", href: "/employer" },
+    { label: "Company profile", href: "/employer/company-profile" },
+    { label: "Post internship", href: "/employer/post-internship" },
+    { label: "My jobs", href: "/employer/my-jobs" },
   ];
   const match = [...known].sort((a, b) => b.href.length - a.href.length).find((item) => isActive(pathname, item.href));
   if (match) return match.label;
@@ -91,7 +94,6 @@ export function SiteNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
-  const [locationHash, setLocationHash] = useState("");
   const [logoutError, setLogoutError] = useState("");
   const [signingOut, setSigningOut] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -134,13 +136,6 @@ export function SiteNavbar() {
     };
   }, []);
 
-  useEffect(() => {
-    const readHash = () => setLocationHash(window.location.hash);
-    readHash();
-    window.addEventListener("hashchange", readHash);
-    return () => window.removeEventListener("hashchange", readHash);
-  }, [pathname]);
-
   async function signOut() {
     if (signingOut) return;
     setSigningOut(true);
@@ -177,9 +172,9 @@ export function SiteNavbar() {
       : account?.role === "employer"
         ? [
             { label: "Dashboard", href: "/employer" },
-            { label: "Company profile", href: "/employer#company-profile" },
-            { label: "Post internship", href: "/employer#post-internship" },
-            { label: "My jobs", href: "/employer#my-jobs" },
+            { label: "Company profile", href: "/employer/company-profile" },
+            { label: "Post internship", href: "/employer/post-internship" },
+            { label: "My jobs", href: "/employer/my-jobs" },
           ]
         : account?.role === "student" ? MAIN_LINKS : PUBLIC_LINKS;
 
@@ -191,45 +186,35 @@ export function SiteNavbar() {
         : ["/about", "/contact", "/privacy-policy", "/terms-of-service"].includes(link.href))),
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [
-      { label: "Review applicants", href: "/employer#my-jobs" },
+      { label: "Review applicants", href: "/employer/my-jobs" },
       { label: "Browse internships", href: "/job-details" },
     ] : []),
     ...(authLoaded && !account ? GUEST_LINKS : []),
   ].filter((link) => !visibleMainLinks.some((main) => main.href === link.href));
   const isCurrentLink = (link: NavLink) => {
-    const [path, fragment] = link.href.split("#");
-    if (fragment) return pathname === path && locationHash === "#" + fragment;
-    if (account?.role === "employer" && path === "/employer") {
-      return pathname === path && !locationHash;
-    }
-    return isActive(pathname, path);
+    // The employer dashboard must not also highlight every employer subpage.
+    if (link.href === "/employer") return pathname === "/employer";
+    return isActive(pathname, link.href);
   };
   const mainActive = visibleMainLinks.some(isCurrentLink);
   const moreActive = moreLinks.some(isCurrentLink) || (!mainActive && pathname.startsWith("/admin/"));
-  const employerSectionNames: Record<string, string> = {
-    "#company-profile": "Company profile",
-    "#post-internship": "Post internship",
-    "#my-jobs": "My jobs",
-  };
-  const currentPage = pathname === "/employer"
-    ? employerSectionNames[locationHash] || "Employer dashboard"
-    : pageName(pathname);
+  const currentPage = pageName(pathname);
   const displayName = account?.fullName?.trim() || "My account";
   const displayRole = roleLabel(account?.role);
 
   function employerLinkIcon(href: string) {
     if (href === "/employer") return <LayoutDashboard className="h-4 w-4" aria-hidden="true" />;
-    if (href === "/employer#company-profile") return <Building2 className="h-4 w-4" aria-hidden="true" />;
-    if (href === "/employer#post-internship") return <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />;
-    if (href === "/employer#my-jobs") return <ClipboardList className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer/company-profile") return <Building2 className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer/post-internship") return <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer/my-jobs") return <ClipboardList className="h-4 w-4" aria-hidden="true" />;
     return null;
   }
 
   function employerIconStyle(href: string, active: boolean) {
     if (active) return "text-orange-100";
-    if (href === "/employer#company-profile") return "text-sky-300";
-    if (href === "/employer#post-internship") return "text-orange-300";
-    if (href === "/employer#my-jobs") return "text-emerald-300";
+    if (href === "/employer/company-profile") return "text-sky-300";
+    if (href === "/employer/post-internship") return "text-orange-300";
+    if (href === "/employer/my-jobs") return "text-emerald-300";
     return "text-violet-300";
   }
 
@@ -260,7 +245,7 @@ export function SiteNavbar() {
               const active = isCurrentLink(link);
               return (
                 <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined}
-                  className={linkClasses(active) + (account?.role === "employer" && link.href === "/employer#post-internship" && !active ? " border border-orange-300/25 bg-orange-400/10" : "")}>
+                  className={linkClasses(active) + (account?.role === "employer" && link.href === "/employer/post-internship" && !active ? " border border-orange-300/25 bg-orange-400/10" : "")}>
                   {account?.role === "employer" && (
                     <span className={"mr-2 inline-flex shrink-0 " + employerIconStyle(link.href, active)}>{employerLinkIcon(link.href)}</span>
                   )}
@@ -400,14 +385,14 @@ export function SiteNavbar() {
           </nav>
         )}
       </header>
-      {/* Reusable glass breadcrumb: blends with the navy hero, stays readable across every page. */}
-      <div className="relative isolate z-0 overflow-hidden border-b border-white/15 bg-[linear-gradient(110deg,rgba(9,24,54,0.94)_0%,rgba(25,51,95,0.82)_52%,rgba(12,31,65,0.94)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_9px_25px_-19px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+      {/* Employer uses one navigation bar; keep breadcrumbs for other pages only. */}
+      {!pathname.startsWith("/employer") && <div className="relative isolate z-0 overflow-hidden border-b border-white/15 bg-[linear-gradient(110deg,rgba(9,24,54,0.94)_0%,rgba(25,51,95,0.82)_52%,rgba(12,31,65,0.94)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_9px_25px_-19px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
         <div aria-hidden="true" className="pointer-events-none absolute -top-8 left-[14%] h-16 w-56 rounded-full bg-[#f5821f]/10 blur-2xl" />
         <nav aria-label="Breadcrumb" className="relative mx-auto flex min-h-11 max-w-[1500px] items-center gap-2.5 overflow-hidden px-5 py-1.5 text-xs font-medium text-white sm:px-7 lg:px-10">
           <Link
             href={homeHref}
             aria-label="Home"
-            aria-current={pathname === homeHref && !(account?.role === "employer" && locationHash) ? "page" : undefined}
+            aria-current={pathname === homeHref ? "page" : undefined}
             className={
               "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 " +
               (pathname === homeHref
@@ -426,7 +411,7 @@ export function SiteNavbar() {
             </>
           )}
         </nav>
-      </div>
+      </div>}
     </div>
   );
 }
