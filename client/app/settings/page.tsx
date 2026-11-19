@@ -40,7 +40,7 @@ export default function SettingsPage() {
       <Link href="/home" className="text-sm font-semibold text-orange-600">← Back to InternLink</Link>
       <h1 className="mt-4 text-3xl font-bold">Account settings</h1>
       <p className="mt-2 text-sm text-slate-500">Manage your account securely. Password changes invalidate other signed-in sessions.</p>
-      <Link href="/profile/edit" className="mt-6 inline-flex rounded-xl border px-5 py-3 text-sm font-semibold hover:bg-slate-50">Edit profile and skills</Link>
+      <Link href="/profile/edit" className="mt-6 inline-flex rounded-xl border px-5 py-3 text-sm font-semibold hover:bg-slate-50">Edit account profile</Link>
       <div className="mt-8 border-t pt-7">
         <h2 className="text-xl font-bold">Change your password</h2>
         <p className="mt-2 text-sm text-slate-500">Use a strong, unique password with at least 10 characters.</p>
