@@ -2,9 +2,10 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { EmployerEditPost, type EditableInternship } from "@/components/employer-edit-post";
 
 type Company = { _id: string; name: string; industry: string; email: string; status: string; location?: string; website?: string };
-type Job = { _id: string; title: string; status: string; companyName: string; location: string; applicationsCount: number };
+type Job = EditableInternship & { companyName: string };
 type CvItem = { title?: string; organization?: string; period?: string; details?: string; url?: string };
 type CvSnapshot = { name?: string; headline?: string; summary?: string; skills?: string[];
  education?: CvItem[]; experience?: CvItem[]; projects?: CvItem[] };
@@ -25,6 +26,7 @@ export default function EmployerPage() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState("");
+  const [editingPost, setEditingPost] = useState<Job | null>(null);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [openApplicant,setOpenApplicant]=useState<string>("");
 
@@ -61,6 +63,21 @@ export default function EmployerPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Unable to publish."); }
     finally { setBusy(false); }
   }
+  function startEditing(post: Job) {
+    setEditingPost(post);
+    setError("");
+    setNotice("");
+    window.requestAnimationFrame(() => {
+      document.getElementById("edit-internship")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  async function finishEditing() {
+    await refresh();
+    setEditingPost(null);
+    setNotice("Internship post updated successfully. Existing applications are unchanged.");
+  }
+
   async function viewApplicants(jobId: string) {
     setSelectedJob(jobId); setOpenApplicant(""); setError(""); setApplicants([]);
     try {
@@ -136,9 +153,18 @@ export default function EmployerPage() {
           {overview.jobs.length===0 && <p className="mt-4 text-sm text-slate-500">No internship posts yet.</p>}
           <div className="mt-4 space-y-3">{overview.jobs.map(j=><div key={j._id} className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 text-sm">
             <div><p className="font-semibold">{j.title}</p><p className="text-slate-500">{j.location} · {j.status} · {j.applicationsCount || 0} applications</p></div>
-            <button type="button" onClick={()=>viewApplicants(j._id)} className="rounded-xl border px-4 py-2 font-semibold hover:bg-slate-50">View applicants</button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={()=>startEditing(j)}
+                aria-label={`Edit ${j.title}`}
+                className="rounded-xl border border-orange-300 px-4 py-2 font-semibold text-orange-800 hover:bg-orange-50">
+                Edit post
+              </button>
+              <button type="button" onClick={()=>viewApplicants(j._id)} className="rounded-xl border px-4 py-2 font-semibold hover:bg-slate-50">View applicants</button>
+            </div>
           </div>)}</div>
         </section>
+        {editingPost && <EmployerEditPost key={editingPost._id} post={editingPost}
+          onCancel={()=>setEditingPost(null)} onUpdated={finishEditing}/>}
         {selectedJob && <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Applications for selected internship</h2>
           {!applicants.length && <p className="mt-4 text-sm text-slate-500">No applications received yet.</p>}
