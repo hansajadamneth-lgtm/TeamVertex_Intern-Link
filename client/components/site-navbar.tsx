@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, Home, LogOut, Menu, Settings, UserRound, X } from "lucide-react";
+import { BriefcaseBusiness, Building2, ChevronDown, ChevronRight, ClipboardList, Home, LayoutDashboard, LogOut, Menu, Settings, UserRound, X } from "lucide-react";
 
 type NavLink = { label: string; href: string };
 type Account = { fullName?: string; role?: string };
@@ -206,9 +206,32 @@ export function SiteNavbar() {
   };
   const mainActive = visibleMainLinks.some(isCurrentLink);
   const moreActive = moreLinks.some(isCurrentLink) || (!mainActive && pathname.startsWith("/admin/"));
-  const currentPage = pathname === "/employer" ? "Employer dashboard" : pageName(pathname);
+  const employerSectionNames: Record<string, string> = {
+    "#company-profile": "Company profile",
+    "#post-internship": "Post internship",
+    "#my-jobs": "My jobs",
+  };
+  const currentPage = pathname === "/employer"
+    ? employerSectionNames[locationHash] || "Employer dashboard"
+    : pageName(pathname);
   const displayName = account?.fullName?.trim() || "My account";
   const displayRole = roleLabel(account?.role);
+
+  function employerLinkIcon(href: string) {
+    if (href === "/employer") return <LayoutDashboard className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer#company-profile") return <Building2 className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer#post-internship") return <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />;
+    if (href === "/employer#my-jobs") return <ClipboardList className="h-4 w-4" aria-hidden="true" />;
+    return null;
+  }
+
+  function employerIconStyle(href: string, active: boolean) {
+    if (active) return "text-orange-100";
+    if (href === "/employer#company-profile") return "text-sky-300";
+    if (href === "/employer#post-internship") return "text-orange-300";
+    if (href === "/employer#my-jobs") return "text-emerald-300";
+    return "text-violet-300";
+  }
 
   function linkClasses(active: boolean, mobile = false) {
     return [
@@ -236,7 +259,11 @@ export function SiteNavbar() {
             {visibleMainLinks.map((link) => {
               const active = isCurrentLink(link);
               return (
-                <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} className={linkClasses(active)}>
+                <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined}
+                  className={linkClasses(active) + (account?.role === "employer" && link.href === "/employer#post-internship" && !active ? " border border-orange-300/25 bg-orange-400/10" : "")}>
+                  {account?.role === "employer" && (
+                    <span className={"mr-2 inline-flex shrink-0 " + employerIconStyle(link.href, active)}>{employerLinkIcon(link.href)}</span>
+                  )}
                   {link.label}
                 </Link>
               );
@@ -256,7 +283,7 @@ export function SiteNavbar() {
                 <div id="il-more-menu" className="absolute right-0 top-[calc(100%+12px)] z-50 max-h-[min(72vh,620px)] w-64 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_22px_65px_-20px_rgba(11,27,62,.35)]">
                   <p className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">Explore InternLink</p>
                   {moreLinks.map((link) => {
-                    const active = isActive(pathname, link.href);
+                    const active = isCurrentLink(link);
                     return (
                       <Link
                         key={link.href}
@@ -351,8 +378,13 @@ export function SiteNavbar() {
                 </div>
               )}
               {[...visibleMainLinks, ...moreLinks].map((link) => {
-                const active = isActive(pathname, link.href);
-                return <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} onClick={() => setMobileOpen(false)} className={linkClasses(active, true)}>{link.label}</Link>;
+                const active = isCurrentLink(link);
+                return <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} onClick={() => setMobileOpen(false)} className={linkClasses(active, true)}>
+                  {account?.role === "employer" && (
+                    <span className={"mr-3 inline-flex shrink-0 " + employerIconStyle(link.href, active)}>{employerLinkIcon(link.href)}</span>
+                  )}
+                  {link.label}
+                </Link>;
               })}
               {account && (
                 <>
@@ -375,7 +407,7 @@ export function SiteNavbar() {
           <Link
             href={homeHref}
             aria-label="Home"
-            aria-current={pathname === homeHref ? "page" : undefined}
+            aria-current={pathname === homeHref && !(account?.role === "employer" && locationHash) ? "page" : undefined}
             className={
               "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 " +
               (pathname === homeHref
