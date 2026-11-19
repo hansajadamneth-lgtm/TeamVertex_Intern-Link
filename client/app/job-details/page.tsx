@@ -93,7 +93,7 @@ export default function JobsPage() {
   setApplying(true);setError("");setNotice("");
   try{
    const r=await fetch("/api/applications",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({jobId:job._id})});const result=await r.json();
+    body:JSON.stringify({jobId:job._id,cvId:selectedCv,coverLetter:coverLetter.trim(),resumeUrl:resumeUrl.trim()})});const result=await r.json();
    if(!r.ok||!result.success)throw new Error(result.message||"Application failed.");
    setNotice("Application submitted! Track progress in My Applications.");
    setAppliedIds(current=>[...new Set([...current,job._id])]);
