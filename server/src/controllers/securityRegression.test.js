@@ -213,6 +213,78 @@ test("job posting with past deadline gives 400 before writing", async () => {
     user: { _id: "507f191e810c19729de860ea", role: "employer" },
   });
 });
+test("employer may edit an owned post without changing recruitment status or application count", async () => {
+  const original = Job.findById;
+  const employerId = "507f191e810c19729de86062";
+  const id = "507f191e810c19729de86061";
+  const post = {
+    _id: id, postedBy: { toString: () => employerId },
+    title: "Old internship", description: "Original description", location: "Kandy",
+    status: "Active", applicationsCount: 3, companyName: "Verified Demo Company",
+    async save() { this.saved = true; },
+  };
+  try {
+    Job.findById = async () => post;
+    const res = response();
+    let uncaught;
+    await updateJob({
+      params: { id }, user: { _id: employerId, role: "employer" },
+      body: { title: "Updated internship", description: "Updated requirements",
+        location: "Colombo", skills: ["React", "Node.js"] },
+    }, res, err => { uncaught = err; });
+    assert.equal(uncaught, undefined);
+    assert.equal(res.statusCode, 200);
+    assert.equal(post.saved, true);
+    assert.equal(post.title, "Updated internship");
+    assert.equal(post.description, "Updated requirements");
+    assert.deepEqual(post.skills, ["React", "Node.js"]);
+    assert.equal(post.applicationsCount, 3);
+    assert.equal(post.status, "Active");
+    assert.equal(post.companyName, "Verified Demo Company");
+    assert.equal(post.postedBy.toString(), employerId);
+  } finally { Job.findById = original; }
+});
+
+test("editing an unowned post returns 403 without saving", async () => {
+  const original = Job.findById;
+  const id = "507f191e810c19729de86061";
+  let saved = false;
+  try {
+    Job.findById = async () => ({
+      _id: id, postedBy: { toString: () => "507f191e810c19729de86062" },
+      async save() { saved = true; },
+    });
+    await expectRejected(updateJob, {
+      params: { id },
+      user: { _id: "507f191e810c19729de86063", role: "employer" },
+      body: { title: "Unauthorized change" },
+    }, 403);
+    assert.equal(saved, false);
+  } finally { Job.findById = original; }
+});
+
+test("editing a post rejects invalid skills and past replacement deadline without saving", async () => {
+  const original = Job.findById;
+  const id = "507f191e810c19729de86061";
+  const owner = "507f191e810c19729de86062";
+  let saved = false;
+  try {
+    Job.findById = async () => ({
+      _id: id, postedBy: { toString: () => owner }, status: "Active",
+      async save() { saved = true; },
+    });
+    await expectRejected(updateJob, {
+      params: { id }, user: { _id: owner, role: "employer" },
+      body: { skills: Array.from({ length: 31 }, (_, i) => "Skill " + i) },
+    });
+    await expectRejected(updateJob, {
+      params: { id }, user: { _id: owner, role: "employer" },
+      body: { deadline: "2000-01-01" },
+    });
+    assert.equal(saved, false);
+  } finally { Job.findById = original; }
+});
+
 test("closed internships cannot be reopened by an employer edit", async () => {
   const originalFindById = Job.findById;
   try {
