@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { EmployerEditPost, type EditableInternship } from "@/components/employer-edit-post";
+import { ArrowRight, BriefcaseBusiness, Building2, ClipboardList, LayoutDashboard, UsersRound } from "lucide-react";
 
 type Company = { _id: string; name: string; industry: string; email: string; status: string; location?: string; website?: string };
 type Job = EditableInternship & { companyName: string };
@@ -16,6 +17,14 @@ const emptyCompany = { name: "", industry: "", email: "", location: "", website:
 const emptyJob = { title: "", category: "IT", type: "Full Time", location: "", duration: "3 Months",
   deadline: "", description: "", requirements: "", skills: "" };
 const statuses = ["Application sent","Under review","Interview scheduled","Accepted","Rejected"];
+type EmployerView = "dashboard" | "company-profile" | "post-internship" | "my-jobs";
+
+function viewFromHash(hash: string): EmployerView {
+  if (hash === "#company-profile") return "company-profile";
+  if (hash === "#post-internship") return "post-internship";
+  if (hash === "#my-jobs") return "my-jobs";
+  return "dashboard";
+}
 
 export default function EmployerPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
@@ -29,6 +38,21 @@ export default function EmployerPage() {
   const [editingPost, setEditingPost] = useState<Job | null>(null);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [openApplicant,setOpenApplicant]=useState<string>("");
+  const [activeView, setActiveView] = useState<EmployerView>("dashboard");
+
+  useEffect(() => {
+    const syncView = () => setActiveView(viewFromHash(window.location.hash));
+    syncView();
+    window.addEventListener("hashchange", syncView);
+    return () => window.removeEventListener("hashchange", syncView);
+  }, []);
+
+  function navigateTo(view: EmployerView) {
+    setActiveView(view);
+    window.history.pushState(null, "", view === "dashboard" ? "/employer" : "/employer#" + view);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   const refresh = useCallback(async () => {
     const r = await fetch("/api/employer/overview", { cache: "no-store" });
@@ -60,6 +84,7 @@ export default function EmployerPage() {
       setNotice("Internship published and available to students.");
       setJob(emptyJob);
       await refresh();
+      navigateTo("my-jobs");
     } catch (e) { setError(e instanceof Error ? e.message : "Unable to publish."); }
     finally { setBusy(false); }
   }
@@ -67,9 +92,10 @@ export default function EmployerPage() {
     setEditingPost(post);
     setError("");
     setNotice("");
-    window.requestAnimationFrame(() => {
+    navigateTo("my-jobs");
+    window.setTimeout(() => {
       document.getElementById("edit-internship")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    }, 80);
   }
 
   async function finishEditing() {
@@ -105,16 +131,78 @@ export default function EmployerPage() {
 
   return <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-4 py-10 text-[#17233b] sm:px-8">
     <div className="mx-auto max-w-5xl">
-      <div className="rounded-3xl bg-[#0b1b3e] p-7 text-white sm:p-10">
-        <p className="text-sm font-semibold text-orange-200">InternLink · Employer portal</p>
-        <h1 className="mt-3 text-3xl font-bold">Find your next intern</h1>
-        <p className="mt-2 text-sm text-slate-300">Register your company, publish verified internships and track applications in one place.</p>
+      <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(125deg,#0b1b3e_0%,#172d57_65%,#264676_100%)] p-7 text-white shadow-[0_24px_55px_-30px_rgba(11,27,62,.55)] sm:p-10">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-16 h-64 w-64 rounded-full border-[35px] border-white/5" />
+        <p className="relative text-xs font-bold uppercase tracking-[0.2em] text-orange-200">InternLink · Employer workspace</p>
+        <h1 className="relative mt-3 text-3xl font-bold">{{
+          dashboard: "Recruitment overview",
+          "company-profile": "Your company identity",
+          "post-internship": "Create an opportunity",
+          "my-jobs": "Manage your internships",
+        }[activeView]}</h1>
+        <p className="relative mt-2 max-w-2xl text-sm leading-6 text-slate-200">{{
+          dashboard: "See your recruitment progress and jump into the next important action.",
+          "company-profile": "Present your organization and keep your verification status in view.",
+          "post-internship": "Share a new role, skills and requirements with students.",
+          "my-jobs": "Edit listings, review candidates and move applications forward.",
+        }[activeView]}</p>
+        <div className="relative mt-7 flex flex-wrap gap-2" aria-label="Employer workspace sections">
+          {([
+            ["dashboard", "Dashboard", LayoutDashboard],
+            ["company-profile", "Company profile", Building2],
+            ["post-internship", "Post internship", BriefcaseBusiness],
+            ["my-jobs", "My jobs", ClipboardList],
+          ] as const).map(([id, label, Icon]) => (
+            <button key={id} type="button" onClick={() => navigateTo(id)}
+              aria-pressed={activeView === id}
+              className={"inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-orange-300 " +
+                (activeView === id ? "border-orange-300/70 bg-orange-500 text-white shadow-lg shadow-orange-900/20" : "border-white/20 bg-white/10 text-slate-100 hover:bg-white/20")}>
+              <Icon aria-hidden="true" className="h-4 w-4" /> {label}
+            </button>
+          ))}
+        </div>
       </div>
       {error && <p role="alert" className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error} <Link href="/login" className="underline">Sign in</Link></p>}
       {notice && <p role="status" className="mt-6 rounded-xl bg-green-50 p-4 text-sm text-green-800">{notice}</p>}
       {loading && <p className="mt-6 text-sm">Loading employer dashboard...</p>}
       {!loading && overview && <>
-        {!overview.company ? <section id="company-profile" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+        {activeView === "dashboard" && (
+          <section aria-label="Recruitment overview" className="mt-7 space-y-6">
+            <div className="grid gap-4 sm:grid-cols-3">
+              {([
+                ["Company status", overview.company?.status || "Not registered", Building2, "text-sky-700", "bg-sky-50"],
+                ["Published internships", String(overview.jobs.length), BriefcaseBusiness, "text-orange-700", "bg-orange-50"],
+                ["Applications received", String(overview.jobs.reduce((total, item) => total + (item.applicationsCount || 0), 0)), UsersRound, "text-emerald-700", "bg-emerald-50"],
+              ] as const).map(([label, value, Icon, color, bg]) => (
+                <article key={label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className={"inline-flex h-11 w-11 items-center justify-center rounded-xl " + bg + " " + color}><Icon className="h-5 w-5" aria-hidden="true" /></div>
+                  <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+                  <p className="mt-2 text-2xl font-extrabold text-[#0b1b3e]">{value}</p>
+                </article>
+              ))}
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-xl font-bold">Quick actions</h2>
+              <p className="mt-2 text-sm text-slate-500">Choose where you want to work next.</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {([
+                  ["company-profile", "Company profile", "Review company details and verification.", Building2],
+                  ["post-internship", "Post internship", "Publish your next opportunity.", BriefcaseBusiness],
+                  ["my-jobs", "My jobs & applicants", "Edit listings and review applications.", ClipboardList],
+                ] as const).map(([id, label, description, Icon]) => (
+                  <button key={id} type="button" onClick={() => navigateTo(id)}
+                    className="group flex min-h-32 flex-col items-start rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-orange-300 hover:bg-orange-50">
+                    <Icon className="h-5 w-5 text-orange-600" aria-hidden="true" />
+                    <span className="mt-3 font-bold text-slate-900">{label}</span>
+                    <span className="mt-1 text-xs leading-5 text-slate-500">{description}</span>
+                    <ArrowRight className="mt-3 h-4 w-4 text-orange-700 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+        {activeView === "company-profile" && (!overview.company ? <section id="company-profile" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-xl font-bold">Register your company</h2>
           <p className="mt-2 text-sm text-slate-500">An admin must verify the company before internships become public.</p>
           <form onSubmit={registerCompany} className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -132,7 +220,21 @@ export default function EmployerPage() {
             <p className="mt-3 text-sm">Verification: <span className="rounded-full bg-orange-50 px-3 py-1 font-semibold text-orange-700">{overview.company.status}</span></p>
             {overview.company.status!=="Verified" && <p className="mt-3 text-sm text-amber-700">Publishing is disabled until an InternLink admin verifies your company.</p>}
           </div>
-          {overview.company.status==="Verified" && <section id="post-internship" className="scroll-mt-36 mt-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+
+        </>)}
+        {activeView === "post-internship" && (
+          <div>
+            {!overview.company && <div className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+              <h2 className="font-bold text-amber-900">Set up your company first</h2>
+              <p className="mt-2 text-sm text-amber-800">You need a verified company profile before publishing internships.</p>
+              <button type="button" onClick={() => navigateTo("company-profile")} className="mt-4 rounded-xl bg-[#0b1b3e] px-5 py-2.5 text-sm font-semibold text-white">Open company profile</button>
+            </div>}
+            {overview.company && overview.company.status !== "Verified" && <div className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+              <h2 className="font-bold text-amber-900">Verification required</h2>
+              <p className="mt-2 text-sm text-amber-800">Your company is currently {overview.company.status}. Posting becomes available after admin verification.</p>
+              <button type="button" onClick={() => navigateTo("company-profile")} className="mt-4 rounded-xl bg-[#0b1b3e] px-5 py-2.5 text-sm font-semibold text-white">View verification status</button>
+            </div>}
+          {overview.company?.status==="Verified" && <section id="post-internship" className="scroll-mt-36 mt-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
             <h2 className="text-xl font-bold">Post a new internship</h2>
             <form onSubmit={publish} className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-semibold">Job title<input required maxLength={150} value={job.title} onChange={e=>updateJob("title",e.target.value)} className={input}/></label>
@@ -147,8 +249,9 @@ export default function EmployerPage() {
               <button disabled={busy} className="rounded-xl bg-[#ff7417] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">{busy?"Publishing...":"Publish internship"}</button>
             </form>
           </section>}
-        </>}
-        <section id="my-jobs" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm">
+          </div>
+        )}
+        {activeView === "my-jobs" && <section id="my-jobs" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Your internship posts</h2>
           {overview.jobs.length===0 && <p className="mt-4 text-sm text-slate-500">No internship posts yet.</p>}
           <div className="mt-4 space-y-3">{overview.jobs.map(j=><div key={j._id} className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 text-sm">
@@ -162,10 +265,10 @@ export default function EmployerPage() {
               <button type="button" onClick={()=>viewApplicants(j._id)} className="rounded-xl border px-4 py-2 font-semibold hover:bg-slate-50">View applicants</button>
             </div>
           </div>)}</div>
-        </section>
-        {editingPost && <EmployerEditPost key={editingPost._id} post={editingPost}
+        </section>}
+        {activeView === "my-jobs" && editingPost && <EmployerEditPost key={editingPost._id} post={editingPost}
           onCancel={()=>setEditingPost(null)} onUpdated={finishEditing}/>}
-        {selectedJob && <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
+        {activeView === "my-jobs" && selectedJob && <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Applications for selected internship</h2>
           {!applicants.length && <p className="mt-4 text-sm text-slate-500">No applications received yet.</p>}
           {applicants.map(app=><article key={app._id} className="mt-4 border-b pb-5 text-sm">
