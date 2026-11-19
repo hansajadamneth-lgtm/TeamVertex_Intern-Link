@@ -21,8 +21,7 @@ jobs:
           node-version: '22'
       - name: Install project dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Audit production dependency advisories (report-only)
-        continue-on-error: true
+      - name: Audit production dependencies for high and critical advisories
         run: npm audit --omit=dev --audit-level=high
       - name: Run Express matching and security regression tests
         run: npm test --workspace=server
