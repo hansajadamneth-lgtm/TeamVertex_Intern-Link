@@ -71,6 +71,7 @@ export function SiteNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [locationHash, setLocationHash] = useState("");
   const [logoutError, setLogoutError] = useState("");
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +105,13 @@ export function SiteNavbar() {
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, []);
+
+  useEffect(() => {
+    const readHash = () => setLocationHash(window.location.hash);
+    readHash();
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, [pathname]);
 
   async function signOut() {
     setLogoutError("");
@@ -152,8 +160,16 @@ export function SiteNavbar() {
     ] : []),
     ...(!account ? GUEST_LINKS : []),
   ].filter((link) => !visibleMainLinks.some((main) => main.href === link.href));
-  const mainActive = visibleMainLinks.some((link) => isActive(pathname, link.href.split("#")[0]));
-  const moreActive = moreLinks.some((link) => isActive(pathname, link.href.split("#")[0])) || (!mainActive && pathname.startsWith("/admin/"));
+  const isCurrentLink = (link: NavLink) => {
+    const [path, fragment] = link.href.split("#");
+    if (fragment) return pathname === path && locationHash === "#" + fragment;
+    if (account?.role === "employer" && path === "/employer") {
+      return pathname === path && !locationHash;
+    }
+    return isActive(pathname, path);
+  };
+  const mainActive = visibleMainLinks.some(isCurrentLink);
+  const moreActive = moreLinks.some(isCurrentLink) || (!mainActive && pathname.startsWith("/admin/"));
   const currentPage = pathname === "/employer" ? "Employer dashboard" : pageName(pathname);
 
   function linkClasses(active: boolean, mobile = false) {
@@ -180,7 +196,7 @@ export function SiteNavbar() {
 
           <nav aria-label="Main navigation" className="ml-auto hidden min-w-0 items-center gap-1 xl:flex">
             {visibleMainLinks.map((link) => {
-              const active = isActive(pathname, link.href.split("#")[0]);
+              const active = isCurrentLink(link);
               return (
                 <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} className={linkClasses(active)}>
                   {link.label}
