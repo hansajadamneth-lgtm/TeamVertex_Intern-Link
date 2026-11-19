@@ -137,7 +137,8 @@ export function SiteNavbar() {
       : MAIN_LINKS;
 
   const moreLinks = [
-    ...MORE_LINKS,
+    ...MORE_LINKS.filter((link) => account?.role === "student" ||
+      !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href)),
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [{ label: "Employer portal", href: "/employer" }] : []),
     ...(!account ? GUEST_LINKS : []),
