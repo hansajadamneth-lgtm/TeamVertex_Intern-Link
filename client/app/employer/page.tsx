@@ -97,7 +97,7 @@ export default function EmployerPage() {
       {notice && <p role="status" className="mt-6 rounded-xl bg-green-50 p-4 text-sm text-green-800">{notice}</p>}
       {loading && <p className="mt-6 text-sm">Loading employer dashboard...</p>}
       {!loading && overview && <>
-        {!overview.company ? <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+        {!overview.company ? <section id="company-profile" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-xl font-bold">Register your company</h2>
           <p className="mt-2 text-sm text-slate-500">An admin must verify the company before internships become public.</p>
           <form onSubmit={registerCompany} className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -109,13 +109,13 @@ export default function EmployerPage() {
             <button type="submit" disabled={busy} className="rounded-xl bg-[#ff7417] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">Submit for verification</button>
           </form>
         </section> : <>
-          <div className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
+          <div id="company-profile" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold">{overview.company.name}</h2>
             <p className="mt-2 text-sm text-slate-500">{overview.company.industry} · {overview.company.email}</p>
             <p className="mt-3 text-sm">Verification: <span className="rounded-full bg-orange-50 px-3 py-1 font-semibold text-orange-700">{overview.company.status}</span></p>
             {overview.company.status!=="Verified" && <p className="mt-3 text-sm text-amber-700">Publishing is disabled until an InternLink admin verifies your company.</p>}
           </div>
-          {overview.company.status==="Verified" && <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+          {overview.company.status==="Verified" && <section id="post-internship" className="scroll-mt-36 mt-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
             <h2 className="text-xl font-bold">Post a new internship</h2>
             <form onSubmit={publish} className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-semibold">Job title<input required maxLength={150} value={job.title} onChange={e=>updateJob("title",e.target.value)} className={input}/></label>
@@ -131,7 +131,7 @@ export default function EmployerPage() {
             </form>
           </section>}
         </>}
-        <section className="mt-7 rounded-2xl border bg-white p-6 shadow-sm">
+        <section id="my-jobs" className="scroll-mt-36 mt-7 rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Your internship posts</h2>
           {overview.jobs.length===0 && <p className="mt-4 text-sm text-slate-500">No internship posts yet.</p>}
           <div className="mt-4 space-y-3">{overview.jobs.map(j=><div key={j._id} className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 text-sm">
