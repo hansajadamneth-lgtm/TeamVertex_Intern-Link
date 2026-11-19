@@ -10,6 +10,8 @@ const Application = require("../models/Application");
 const { createApplication, updateApplicationStatus, getApplicationsForJob } = require("./applicationController");
 const { protect } = require("../middleware/authMiddleware");
 const { authorize } = require("../middleware/roleMiddleware");
+const User = require("../models/User");
+const { requestPasswordReset, resetPassword } = require("./passwordResetController");
 
 function response() {
   return {
@@ -59,6 +61,53 @@ test("admin accounts pass admin role middleware", () => {
   let passed = false;
   authorize("admin")({ user: { role: "admin" } }, res, () => { passed = true; });
   assert.equal(passed, true);
+});
+
+test("password recovery rejects malformed account emails before database access", async () => {
+  await expectRejected(requestPasswordReset, { body: { email: { $ne: null } } });
+});
+
+test("password reset rejects malformed and expired tokens", async () => {
+  await expectRejected(resetPassword, { body: { token: "not-a-valid-token", newPassword: "long-enough-password" } });
+  const oldFind = User.findOneAndUpdate;
+  try {
+    User.findOneAndUpdate = async () => null;
+    await expectRejected(resetPassword, {
+      body: { token: "a".repeat(64), newPassword: "long-enough-password" },
+    });
+  } finally {
+    User.findOneAndUpdate = oldFind;
+  }
+});
+
+test("valid password reset increments the session version and clears auth cookie", async () => {
+  const oldFind = User.findOneAndUpdate;
+  let filter;
+  const account = {
+    password: "previous-value", sessionVersion: 4, saved: false,
+    async save() { this.saved = true; },
+  };
+  try {
+    User.findOneAndUpdate = async (query, changes) => {
+      filter = { query, changes };
+      return account;
+    };
+    const res = response();
+    res.clearCookie = function(name) { this.clearedCookie = name; };
+    let unexpected;
+    await resetPassword({
+      body: { token: "b".repeat(64), newPassword: "new-long-enough-password" },
+    }, res, error => { unexpected = error; });
+    assert.equal(unexpected, undefined);
+    assert.equal(res.statusCode, 200);
+    assert.equal(account.saved, true);
+    assert.equal(account.sessionVersion, 5);
+    assert.equal(res.clearedCookie, "token");
+    assert.ok(filter.query.resetPasswordExpire.$gt instanceof Date);
+    assert.equal(filter.changes.$set.resetPasswordToken, null);
+  } finally {
+    User.findOneAndUpdate = oldFind;
+  }
 });
 
 test("registration without a JSON body gives 400, not 500", async () => {
