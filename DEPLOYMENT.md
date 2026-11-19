@@ -82,3 +82,19 @@ Never commit `.env` files or live credentials. Deploy the feature branch only, k
 ## Triggering Vercel after changing Production Branch
 
 Vercel automatically creates a production deployment on new commits pushed to the tracked production branch. If the initial import was cancelled while it targeted `main`, configure Project Settings > Environments > Production > Branch Tracking to `feature/internlink-proposal-completion`, save it, and push a new commit to that feature branch. Check the Vercel Deployments tab to confirm the deployed branch and commit SHA. This step never requires editing or merging `main`.
+
+## Optional password-recovery email on Render Free
+
+The feature branch implements single-use, 15-minute reset links and revokes old sessions after a successful reset. **It remains intentionally unavailable until an email provider is configured.** The existing sign-in/password-change workflow continues to work without this service.
+
+For a verified sender using Resend, add these environment variables **only** on the existing Render Free backend service:
+
+| Name | Purpose |
+|---|---|
+| `RESEND_API_KEY` | Secret API key from your own email provider account (never commit or paste in chat) |
+| `PASSWORD_RESET_FROM` | Verified sender address, e.g. `InternLink <no-reply@your-verified-domain.example>` |
+| `PASSWORD_RESET_BASE_URL` | Exact site origin `https://team-vertex-intern-link.vercel.app` (no path or slash suffix) |
+
+This integration does **not** require upgrading Render; email providers may have their own plans and domain-verification requirements. Deploy and test real delivery only after selecting/configuring an email provider and verified sender. If credentials are not available, `POST /api/auth/forgot-password` correctly returns HTTP 503 instead of pretending an email was sent.
+
+Security notes: never log recovery tokens or complete reset links, never copy them to GitHub, and use separate test accounts for the recovery demo. New sessions require a fresh login after reset.
