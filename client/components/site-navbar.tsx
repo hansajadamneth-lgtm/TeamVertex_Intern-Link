@@ -17,6 +17,11 @@ const MAIN_LINKS: NavLink[] = [
   { label: "Applications", href: "/applications" },
 ];
 
+const PUBLIC_LINKS: NavLink[] = [
+  { label: "Home", href: "/home" },
+  { label: "Find internships", href: "/job-details" },
+];
+
 const MORE_LINKS: NavLink[] = [
   { label: "Saved jobs", href: "/saved-jobs" },
   { label: "Notifications", href: "/notifications" },
@@ -148,17 +153,19 @@ export function SiteNavbar() {
             { label: "Post internship", href: "/employer#post-internship" },
             { label: "My jobs", href: "/employer#my-jobs" },
           ]
-        : MAIN_LINKS;
+        : account?.role === "student" ? MAIN_LINKS : PUBLIC_LINKS;
 
   const moreLinks: NavLink[] = [
-    ...(account?.role === "student" ? MORE_LINKS : MORE_LINKS.filter(link =>
-      !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href))),
+    ...(account?.role === "student" ? MORE_LINKS :
+      MORE_LINKS.filter(link => account
+        ? !["/saved-jobs", "/notifications", "/cover-letter"].includes(link.href)
+        : ["/about", "/contact", "/privacy-policy", "/terms-of-service"].includes(link.href))),
     ...(account?.role === "admin" ? ADMIN_LINKS : []),
     ...(account?.role === "employer" ? [
       { label: "Review applicants", href: "/employer#my-jobs" },
       { label: "Browse internships", href: "/job-details" },
     ] : []),
-    ...(!account ? GUEST_LINKS : []),
+    ...(authLoaded && !account ? GUEST_LINKS : []),
   ].filter((link) => !visibleMainLinks.some((main) => main.href === link.href));
   const isCurrentLink = (link: NavLink) => {
     const [path, fragment] = link.href.split("#");
