@@ -10,7 +10,7 @@ router.get("/overview", async (req, res, next) => {
     const company = await Company.findOne({ owner: req.user._id })
       .select("name industry email location website description status createdAt").lean();
     const jobs = await Job.find({ postedBy: req.user._id }).sort({ createdAt: -1 })
-      .select("title companyName location category type status applicationsCount createdAt deadline").limit(100).lean();
+      .select("title companyName location category type duration description requirements skills salary status applicationsCount createdAt deadline").limit(100).lean();
     return res.json({ success: true, data: { company, jobs } });
   } catch (error) { next(error); }
 });
