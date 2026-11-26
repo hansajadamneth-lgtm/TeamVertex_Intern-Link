@@ -26,7 +26,7 @@ async function invoke(handler, user, body) {
 test("concurrent CV saves, registrations and applications stay consistent", async t => {
   // Each run uses a new database on the disposable local CI replica set.
   const dbName = "internlink_test_" + new mongoose.Types.ObjectId();
-  await mongoose.connect("mongodb://127.0.0.1:27017/?replicaSet=rs0", { dbName, serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect("mongodb://127.0.0.1:27017/?replicaSet=rs0", { dbName, serverSelectionTimeoutMS: 30000 });
   t.after(async () => {
     try { await mongoose.connection.dropDatabase(); } finally { await mongoose.disconnect(); }
   });
