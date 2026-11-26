@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { bcrypt, validNewPassword } = require("../utils/passwordPolicy");
 const { generateToken } = require("../utils/generateToken");
 
 /**
@@ -35,10 +36,10 @@ const registerUser = async (req, res, next) => {
       });
     }
 
-    if (typeof password !== "string" || password.length < 10 || password.length > 128) {
+    if (!validNewPassword(password)) {
       return res.status(400).json({
         success: false,
-        message: "Password must be between 10 and 128 characters.",
+        message: "Password must contain at least 10 characters and at most 72 UTF-8 bytes.",
       });
     }
 
@@ -262,18 +263,24 @@ const updateMe = async (req, res, next) => {
 const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body || {};
-    if (typeof currentPassword !== "string" || typeof newPassword !== "string" ||
-        newPassword.length < 10 || newPassword.length > 128 || currentPassword === newPassword) {
-      return res.status(400).json({ success: false, message: "Use a new password between 10 and 128 characters." });
+    if (typeof currentPassword !== "string" || currentPassword.length > 128 ||
+        !validNewPassword(newPassword) || currentPassword === newPassword) {
+      return res.status(400).json({ success: false, message: "Use a different password with at least 10 characters and at most 72 UTF-8 bytes." });
     }
     const user = await User.findById(req.user._id).select("+password");
     if (!user || !(await user.comparePassword(currentPassword))) {
       return res.status(401).json({ success: false, message: "Current password is incorrect." });
     }
-    user.password = newPassword;
-    user.sessionVersion = (user.sessionVersion ?? 0) + 1;
-    await user.save();
-    const token = generateToken({ id: user._id.toString(), role: user.role, version: user.sessionVersion });
+    // Compare-and-set: do not overwrite a concurrent password change/reset.
+    // Hash explicitly because findOneAndUpdate does not run pre-save hooks.
+    const updated = await User.findOneAndUpdate(
+      { _id: user._id, password: user.password, status: { $in: ["Active", null] } },
+      { $set: { password: await bcrypt.hash(newPassword, 12), resetPasswordToken: null, resetPasswordExpire: null },
+        $inc: { sessionVersion: 1 } },
+      { new: true }
+    );
+    if (!updated) return res.status(409).json({ success: false, message: "Account changed. Please sign in again." });
+    const token = generateToken({ id: updated._id.toString(), role: updated.role, version: updated.sessionVersion });
     setTokenCookie(res, token);
     return res.json({ success: true, message: "Password updated. Other sessions have been signed out." });
   } catch (error) { next(error); }

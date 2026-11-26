@@ -14,8 +14,8 @@ export default function SettingsPage() {
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(""); setNotice("");
-    if (newPassword.length < 10 || newPassword.length > 128) {
-      setError("Your new password must contain 10 to 128 characters."); return;
+    if (newPassword.length < 10 || new TextEncoder().encode(newPassword).length > 72) {
+      setError("Your new password must contain at least 10 characters and at most 72 UTF-8 bytes."); return;
     }
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match."); return;

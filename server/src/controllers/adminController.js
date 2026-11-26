@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const mongoose = require("mongoose");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const Application = require("../models/Application");
@@ -136,7 +137,10 @@ const getStudents = async (req, res, next) => {
  */
 const updateStudentStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid student ID." });
+    }
+    const { status } = req.body || {};
 
     const allowedStatuses = ["Active", "Inactive", "Pending"];
     if (!status || !allowedStatuses.includes(status)) {

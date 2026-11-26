@@ -1,5 +1,6 @@
 const crypto = require("node:crypto");
 const User = require("../models/User");
+const { bcrypt, validNewPassword } = require("../utils/passwordPolicy");
 
 const GENERIC_RESPONSE = "If an active account exists and email delivery is available, password reset instructions will be sent.";
 const RESET_LIFETIME_MS = 15 * 60 * 1000;
@@ -89,27 +90,25 @@ async function resetPassword(req, res, next) {
     res.set("Cache-Control", "no-store");
     const { token, newPassword } = req.body || {};
     if (typeof token !== "string" || !/^[a-f0-9]{64}$/i.test(token) ||
-        typeof newPassword !== "string" || newPassword.length < 10 ||
-        newPassword.length > 128) {
+        !validNewPassword(newPassword)) {
       return res.status(400).json({
         success: false,
-        message: "Provide a valid reset link and a new password between 10 and 128 characters.",
+        message: "Provide a valid reset link and a password with at least 10 characters and at most 72 UTF-8 bytes.",
       });
     }
 
-    // Claim the token atomically so it cannot be reused by concurrent requests.
+    // One database write consumes the token, changes the hash, and revokes sessions.
+    // A failed write leaves the token usable; simultaneous resets cannot both win.
+    const password = await bcrypt.hash(newPassword, 12);
     const user = await User.findOneAndUpdate(
       { resetPasswordToken: digest(token), resetPasswordExpire: { $gt: new Date() }, status: "Active" },
-      { $set: { resetPasswordToken: null, resetPasswordExpire: null } },
+      { $set: { password, resetPasswordToken: null, resetPasswordExpire: null },
+        $inc: { sessionVersion: 1 } },
       { new: true }
     );
     if (!user) {
       return res.status(400).json({ success: false, message: "This reset link is invalid or has expired." });
     }
-
-    user.password = newPassword; // User pre-save middleware hashes the password.
-    user.sessionVersion = (user.sessionVersion ?? 0) + 1;
-    await user.save();
 
     res.clearCookie("token", {
       httpOnly: true, secure: process.env.NODE_ENV === "production",
