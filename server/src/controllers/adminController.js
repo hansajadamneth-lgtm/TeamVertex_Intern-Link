@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const mongoose = require("mongoose");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const Application = require("../models/Application");
@@ -136,7 +137,10 @@ const getStudents = async (req, res, next) => {
  */
 const updateStudentStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid student ID." });
+    }
+    const { status } = req.body || {};
 
     const allowedStatuses = ["Active", "Inactive", "Pending"];
     if (!status || !allowedStatuses.includes(status)) {
@@ -146,16 +150,17 @@ const updateStudentStatus = async (req, res, next) => {
       });
     }
 
-    const student = await User.findOne({ _id: req.params.id, role: "student" });
+    const change = { $set: { status } };
+    if (status !== "Active") change.$inc = { sessionVersion: 1 };
+    const student = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "student" }, change, { new: true }
+    );
     if (!student) {
       return res.status(404).json({
         success: false,
         message: `Student account not found with identifier: ${req.params.id}`,
       });
     }
-
-    student.status = status;
-    await student.save();
 
     return res.status(200).json({
       success: true,

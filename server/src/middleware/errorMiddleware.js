@@ -14,9 +14,16 @@ const notFound = (req, res, next) => {
  * JWT issues, and standard runtime errors.
  */
 const errorHandler = (err, req, res, next) => {
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode || 500;
+  if (res.headersSent) return next(err);
+  const httpStatus = err.statusCode || err.status;
+  let statusCode = Number.isInteger(httpStatus) && httpStatus >= 400 && httpStatus <= 599
+    ? httpStatus : res.statusCode >= 400 ? res.statusCode : 500;
   let message = err.message || "Internal Server Error";
   let errors = null;
+
+  // Express body parser supplies 400/413; never echo its raw request payload.
+  if (err.type === "entity.parse.failed") message = "Malformed request body.";
+  if (err.type === "entity.too.large") message = "Request body is too large.";
 
   // 1. Mongoose Bad ObjectId (CastError)
   if (err.name === "CastError") {
@@ -55,7 +62,8 @@ const errorHandler = (err, req, res, next) => {
   // Do not expose raw MongoDB/driver exceptions or internal error details in production.
   // Keep validation and intentional 4xx responses informative for the client.
   if (statusCode >= 500 && process.env.NODE_ENV === "production") {
-    console.error("API internal error:", err);
+    // Parser/driver error objects can contain credentials or raw request bodies.
+    console.error("API internal error:", err.name, statusCode);
     message = "Internal server error. Please try again later.";
     errors = null;
   }

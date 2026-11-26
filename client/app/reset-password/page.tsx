@@ -13,8 +13,8 @@ export default function ResetPasswordPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (newPassword.length < 10 || newPassword.length > 128 || newPassword !== confirmPassword) {
-      setError("Password must be 10–128 characters and match its confirmation.");
+    if (newPassword.length < 10 || new TextEncoder().encode(newPassword).length > 72 || newPassword !== confirmPassword) {
+      setError("Use at least 10 characters and at most 72 UTF-8 bytes, and match the confirmation.");
       return;
     }
     const token = new URLSearchParams(window.location.search).get("token") || "";

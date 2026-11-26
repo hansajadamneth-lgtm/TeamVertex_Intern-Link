@@ -108,7 +108,14 @@ test("students cannot submit another student's CV", async () => {
   }
 });
 
-test("CV edit/delete queries are scoped to the current student", async () => {
+test("CV edit/delete queries are scoped to the current student", async t => {
+  const session = {};
+  t.mock.method(Cv.db, "transaction", callback => callback(session));
+  t.mock.method(User, "updateOne", async (filter, change, options) => {
+    assert.equal(filter._id, studentId);
+    assert.equal(options.session, session);
+    return { matchedCount: 1 };
+  });
   const oldFind = Cv.findOne;
   const oldDelete = Cv.findOneAndDelete;
   try {
@@ -123,8 +130,8 @@ test("CV edit/delete queries are scoped to the current student", async () => {
       return null;
     };
     const req = { params: { id: cvId }, body: { name: "Hacked" }, user: { _id: studentId } };
-    assert.equal((await invoke(updateCv, req)).statusCode, 404);
-    assert.equal((await invoke(removeCv, req)).statusCode, 404);
+    await assert.rejects(invoke(updateCv, req), { status: 404 });
+    await assert.rejects(invoke(removeCv, req), { status: 404 });
   } finally {
     Cv.findOne = oldFind;
     Cv.findOneAndDelete = oldDelete;
@@ -177,4 +184,45 @@ test("suspended users and invalidated sessions cannot authenticate", async () =>
     if (oldSecret === undefined) delete process.env.JWT_SECRET;
     else process.env.JWT_SECRET = oldSecret;
   }
+});
+
+test("only the verified company owner can review applicants on admin-posted listings", async t => {
+  const { canManageJob } = require("../utils/jobAccess");
+  const job = { postedBy: strangerId, company: companyId };
+  let status = "Verified";
+  t.mock.method(Company, "exists", async query =>
+    query.owner === ownerId && query._id === companyId && (!query.status || query.status === status));
+  const employer = { role: "employer", _id: ownerId };
+  assert.equal(await canManageJob(job, employer), true);
+  assert.equal(await canManageJob(job, employer, { applicants: true }), true);
+  assert.equal(await canManageJob(job, { ...employer, _id: strangerId }, { applicants: true }), false);
+  status = "Suspended";
+  assert.equal(await canManageJob(job, employer, { applicants: true }), false);
+  assert.equal(await canManageJob(job, { role: "admin" }, { applicants: true }), true);
+});
+
+test("suspending then reactivating a student keeps the old session revoked", async t => {
+  const { updateStudentStatus } = require("./adminController");
+  const account = { _id: studentId, role: "student", status: "Active", sessionVersion: 2 };
+  t.mock.method(User, "findOneAndUpdate", async (filter, change) => {
+    assert.deepEqual(filter, { _id: studentId, role: "student" });
+    account.status = change.$set.status;
+    account.sessionVersion += change.$inc?.sessionVersion || 0;
+    return account;
+  });
+  for (const status of ["Inactive", "Active"]) {
+    const res = await invoke(updateStudentStatus, { params: { id: studentId }, body: { status } });
+    assert.equal(res.statusCode, 200);
+  }
+  assert.equal(account.sessionVersion, 3);
+});
+
+test("profile edits accept the full contents synced from a primary CV", async () => {
+  const { updateMe } = require("./authController");
+  const body = { bio: "x".repeat(3000), education: "x".repeat(1500),
+    skills: Array.from({ length: 60 }, (_, index) => "Skill " + index) };
+  const user = { save: async () => {} };
+  const res = await invoke(updateMe, { body, user });
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.payload.user.skills, body.skills);
 });

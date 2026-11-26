@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { registerUser, loginUser } = require("./authController");
+const { registerUser, loginUser, changePassword } = require("./authController");
+const { bcrypt, validNewPassword } = require("../utils/passwordPolicy");
 const { createCompany, updateCompany, getCompanyById, updateCompanyStatus } = require("./companyController");
 const { createJob, updateJob, getJobById, deleteJob } = require("./jobController");
 const Job = require("../models/Job");
@@ -83,10 +84,7 @@ test("password reset rejects malformed and expired tokens", async () => {
 test("valid password reset increments the session version and clears auth cookie", async () => {
   const oldFind = User.findOneAndUpdate;
   let filter;
-  const account = {
-    password: "previous-value", sessionVersion: 4, saved: false,
-    async save() { this.saved = true; },
-  };
+  const account = { sessionVersion: 5 };
   try {
     User.findOneAndUpdate = async (query, changes) => {
       filter = { query, changes };
@@ -100,8 +98,9 @@ test("valid password reset increments the session version and clears auth cookie
     }, res, error => { unexpected = error; });
     assert.equal(unexpected, undefined);
     assert.equal(res.statusCode, 200);
-    assert.equal(account.saved, true);
-    assert.equal(account.sessionVersion, 5);
+    assert.equal(filter.changes.$inc.sessionVersion, 1);
+    assert.equal(await bcrypt.compare("new-long-enough-password", filter.changes.$set.password), true);
+    assert.equal(filter.changes.$set.resetPasswordExpire, null);
     assert.equal(res.clearedCookie, "token");
     assert.ok(filter.query.resetPasswordExpire.$gt instanceof Date);
     assert.equal(filter.changes.$set.resetPasswordToken, null);
@@ -338,10 +337,12 @@ test("application status rejects malformed application IDs", async () => {
   });
 });
 
-test("student application uses only an owned CV, snapshots it and increments the job counter", async () => {
+test("student application uses only an owned CV, snapshots it and increments the job counter", async t => {
+  const session = {};
+  t.mock.method(Job.db, "transaction", callback => callback(session));
   const original = {
     job: Job.findById, company: Company.findOne, cv: Cv.findOne,
-    existing: Application.findOne, create: Application.create, count: Job.findByIdAndUpdate,
+    existing: Application.findOne, create: Application.create, count: Job.updateOne,
   };
   const jobId = "507f191e810c19729de86061";
   const studentId = "507f191e810c19729de86062";
@@ -361,8 +362,17 @@ test("student application uses only an owned CV, snapshots it and increments the
         skills: ["React"], education: [], experience: [], projects: [] };
     };
     Application.findOne = async () => null;
-    Application.create = async data => { created = data; return { _id: "507f191e810c19729de86065", ...data }; };
-    Job.findByIdAndUpdate = async (id, change) => { increment = { id, change }; return {}; };
+    Application.create = async ([data], options) => {
+      assert.equal(options.session, session);
+      created = data;
+      return [{ _id: "507f191e810c19729de86065", ...data }];
+    };
+    Job.updateOne = async (filter, change, options) => {
+      assert.equal(options.session, session);
+      assert.equal(filter.status, "Active");
+      increment = { id: filter._id, change };
+      return { matchedCount: 1 };
+    };
     const res = response();
     let unexpected;
     await createApplication({
@@ -384,6 +394,58 @@ test("student application uses only an owned CV, snapshots it and increments the
     Cv.findOne = original.cv;
     Application.findOne = original.existing;
     Application.create = original.create;
-    Job.findByIdAndUpdate = original.count;
+    Job.updateOne = original.count;
+  }
+});
+
+
+test("password policy checks UTF-8 bytes instead of silently truncating bcrypt input", async () => {
+  assert.equal(validNewPassword("a".repeat(72)), true);
+  assert.equal(validNewPassword("a".repeat(73)), false);
+  assert.equal(validNewPassword("é".repeat(36)), true);
+  assert.equal(validNewPassword("é".repeat(37)), false);
+  await expectRejected(registerUser, { body: { fullName: "Demo Student", email: "demo@example.com", password: "a".repeat(73) } });
+  await expectRejected(changePassword, { body: { currentPassword: "old-password", newPassword: "é".repeat(37) } });
+  await expectRejected(resetPassword, { body: { token: "a".repeat(64), newPassword: "a".repeat(73) } });
+});
+
+test("password change cannot overwrite a concurrent reset", async () => {
+  const oldFind = User.findById;
+  const oldUpdate = User.findOneAndUpdate;
+  try {
+    User.findById = () => ({ select: async () => ({
+      _id: "64b000000000000000000001", password: "old-hash",
+      comparePassword: async () => true,
+    }) });
+    User.findOneAndUpdate = async (filter, changes) => {
+      assert.equal(filter.password, "old-hash");
+      assert.equal(changes.$set.resetPasswordToken, null);
+      assert.equal(changes.$set.resetPasswordExpire, null);
+      assert.equal(changes.$inc.sessionVersion, 1);
+      assert.equal(await bcrypt.compare("new-password-123", changes.$set.password), true);
+      return null;
+    };
+    await expectRejected(changePassword, { user: { _id: "64b000000000000000000001" },
+      body: { currentPassword: "old-password", newPassword: "new-password-123" } }, 409);
+  } finally {
+    User.findById = oldFind;
+    User.findOneAndUpdate = oldUpdate;
+  }
+});
+
+
+test("malformed student status updates return 400", async () => {
+  const { updateStudentStatus } = require("./adminController");
+  await expectRejected(updateStudentStatus, { params: { id: "not-an-id" }, body: { status: "Active" } });
+  await expectRejected(updateStudentStatus, { params: { id: "64b000000000000000000001" } });
+});
+
+test("body parser errors preserve client status without echoing payloads", () => {
+  const { errorHandler } = require("../middleware/errorMiddleware");
+  for (const [type, status] of [["entity.parse.failed", 400], ["entity.too.large", 413]]) {
+    const res = response();
+    errorHandler({ type, status, message: "private body text" }, {}, res, () => {});
+    assert.equal(res.statusCode, status);
+    assert.ok(!res.payload.message.includes("private body text"));
   }
 });

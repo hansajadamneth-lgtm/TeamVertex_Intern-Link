@@ -47,8 +47,8 @@ export function RegisterCard() {
     setError("");
     setSuccess("");
 
-    if (password.length < 10 || password.length > 128) {
-      setError("Password must be between 10 and 128 characters.");
+    if (password.length < 10 || new TextEncoder().encode(password).length > 72) {
+      setError("Password must contain at least 10 characters and at most 72 UTF-8 bytes.");
       return;
     }
 

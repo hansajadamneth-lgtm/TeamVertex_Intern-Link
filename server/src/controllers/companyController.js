@@ -136,48 +136,33 @@ const createCompany = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid company name, industry, email or field length." });
     }
 
-    // 2. Prevent employers from creating duplicate company profiles for their account
-    if (req.user.role !== "admin") {
-      const existingOwnerCompany = await Company.findOne({ owner: req.user._id });
-      if (existingOwnerCompany) {
-        return res.status(409).json({
-          success: false,
-          message: "Your employer account already has a registered company profile.",
-          data: existingOwnerCompany,
-        });
+    const company = await mongoose.connection.transaction(async session => {
+      // Concurrent registrations write the same owner record. A retried
+      // transaction sees the company that was already registered.
+      if (req.user.role !== "admin") {
+        const existing = await Company.findOne({ owner: req.user._id }, null, { session });
+        if (existing) return { existing };
       }
-    }
-
-    // 3. Check for duplicate company name
-    const existingName = await Company.findOne({
-      name: trimmedName,
-    }).collation({ locale: "en", strength: 2 });
-    if (existingName) {
-      return res.status(409).json({
-        success: false,
-        message: "A company with this name is already registered.",
-      });
-    }
-
-    // 4. Security: Company starts as 'Pending' verification. Owner is set from verified session.
-    const company = await Company.create({
-      name: trimmedName,
-      industry: trimmedIndustry,
-      email: trimmedEmail,
-      website: trimmedWebsite,
-      location: (location || "").trim(),
-      description: (description || "").trim(),
-      status: "Pending", // Must be verified by an admin
-      owner: req.user._id,
+      const sameName = await Company.findOne({ name: trimmedName }, null, { session })
+        .collation({ locale: "en", strength: 2 });
+      if (sameName) throw Object.assign(new Error("A company with this name is already registered."), { status: 409 });
+      const [created] = await Company.create([{
+        name: trimmedName, industry: trimmedIndustry, email: trimmedEmail, website: trimmedWebsite,
+        location: (location || "").trim(), description: (description || "").trim(),
+        status: "Pending", owner: req.user._id,
+      }], { session });
+      const result = await User.updateOne({ _id: req.user._id }, { $set: { company: created._id } }, { session });
+      if (!result.matchedCount) throw Object.assign(new Error("Account not found."), { status: 404 });
+      return { created };
     });
-
-    // Link company to user profile
-    await User.findByIdAndUpdate(req.user._id, { company: company._id });
+    if (company.existing) return res.status(409).json({
+      success: false, message: "Your employer account already has a registered company profile.", data: company.existing,
+    });
 
     return res.status(201).json({
       success: true,
       message: "Company profile registered successfully and is pending admin verification.",
-      data: company,
+      data: company.created,
     });
   } catch (error) {
     if (error.code === 11000) {
