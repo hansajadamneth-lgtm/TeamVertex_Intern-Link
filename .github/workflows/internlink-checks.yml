@@ -25,6 +25,16 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Run Express matching and security regression tests
         run: npm test --workspace=server
+      - name: Test concurrent writes on a disposable MongoDB replica set
+        run: |
+          docker run --rm -d --name internlink-mongo -p 127.0.0.1:27017:27017 mongo:8 --replSet rs0 --bind_ip_all
+          for attempt in {1..30}; do
+            docker exec internlink-mongo mongosh --quiet --eval 'db.adminCommand({ping:1})' && break
+            sleep 1
+          done
+          docker exec internlink-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
+          docker exec internlink-mongo mongosh --quiet --eval 'assert.soon(() => db.hello().isWritablePrimary)'
+          node --test server/src/controllers/concurrency.integration.js
       - name: Validate client TypeScript
         run: npx tsc --noEmit -p client/tsconfig.json
       - name: Build Next.js client

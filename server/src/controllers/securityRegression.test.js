@@ -337,10 +337,12 @@ test("application status rejects malformed application IDs", async () => {
   });
 });
 
-test("student application uses only an owned CV, snapshots it and increments the job counter", async () => {
+test("student application uses only an owned CV, snapshots it and increments the job counter", async t => {
+  const session = {};
+  t.mock.method(Job.db, "transaction", callback => callback(session));
   const original = {
     job: Job.findById, company: Company.findOne, cv: Cv.findOne,
-    existing: Application.findOne, create: Application.create, count: Job.findByIdAndUpdate,
+    existing: Application.findOne, create: Application.create, count: Job.updateOne,
   };
   const jobId = "507f191e810c19729de86061";
   const studentId = "507f191e810c19729de86062";
@@ -360,8 +362,17 @@ test("student application uses only an owned CV, snapshots it and increments the
         skills: ["React"], education: [], experience: [], projects: [] };
     };
     Application.findOne = async () => null;
-    Application.create = async data => { created = data; return { _id: "507f191e810c19729de86065", ...data }; };
-    Job.findByIdAndUpdate = async (id, change) => { increment = { id, change }; return {}; };
+    Application.create = async ([data], options) => {
+      assert.equal(options.session, session);
+      created = data;
+      return [{ _id: "507f191e810c19729de86065", ...data }];
+    };
+    Job.updateOne = async (filter, change, options) => {
+      assert.equal(options.session, session);
+      assert.equal(filter.status, "Active");
+      increment = { id: filter._id, change };
+      return { matchedCount: 1 };
+    };
     const res = response();
     let unexpected;
     await createApplication({
@@ -383,7 +394,7 @@ test("student application uses only an owned CV, snapshots it and increments the
     Cv.findOne = original.cv;
     Application.findOne = original.existing;
     Application.create = original.create;
-    Job.findByIdAndUpdate = original.count;
+    Job.updateOne = original.count;
   }
 });
 

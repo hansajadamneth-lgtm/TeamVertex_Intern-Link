@@ -60,7 +60,7 @@ export default function EditProfilePage() {
     { key: "fullName", label: "Full name", max: 100 },
     { key: "phone", label: "Phone (optional)", max: 40 },
     { key: "location", label: "Location", max: 120 },
-    { key: "education", label: "Course / education", max: 200 },
+    { key: "education", label: "Course / education", max: 1500 },
   ];
   return (
     <main className="il-page-enter min-h-screen bg-[#f6f8fc] px-4 py-10 text-[#17233b] sm:px-8">
@@ -88,7 +88,7 @@ export default function EditProfilePage() {
                 className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500" />
             </label>}
             <label className="block text-sm font-medium">{profile.role==="student"?"About yourself":"About your account"}
-              <textarea maxLength={1200} value={profile.bio || ""} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
+              <textarea maxLength={3000} value={profile.bio || ""} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
                 rows={4} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500" />
             </label>
             <button disabled={saving} type="submit" className="rounded-xl bg-[#ff7417] px-7 py-3 font-semibold text-white hover:bg-[#df6110] disabled:opacity-60">

@@ -1,3 +1,4 @@
+const { canManageJob } = require("../utils/jobAccess");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const mongoose = require("mongoose");
@@ -298,14 +299,10 @@ const updateJob = async (req, res, next) => {
     }
 
     // Security: Check ownership (Employer owner or Admin)
-    const isOwner =
-      job.postedBy && job.postedBy.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
+    if (!(await canManageJob(job, req.user))) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized. You can only update posts created by your account.",
+        message: "Not authorized. You can only update posts managed by your company.",
       });
     }
 
@@ -392,14 +389,10 @@ const deleteJob = async (req, res, next) => {
     }
 
     // Security: Check ownership (Employer owner or Admin)
-    const isOwner =
-      job.postedBy && job.postedBy.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
+    if (!(await canManageJob(job, req.user))) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized. You can only delete or close posts created by your account.",
+        message: "Not authorized. You can only delete or close posts managed by your company.",
       });
     }
 

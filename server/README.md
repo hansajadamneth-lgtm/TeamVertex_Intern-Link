@@ -5,6 +5,9 @@ Copy `.env.example` to `.env`, supply `MONGO_URI` and `JWT_SECRET`,
 then from the monorepo root run `npm install` and
 `npm run dev --workspace=server`.
 
+Company registration, CV edits and application submissions use MongoDB transactions.
+Use MongoDB Atlas or a local replica set for these workflows.
+
 ## CV API (student login required)
 - `GET /api/cvs`: list user's CV versions
 - `POST /api/cvs`: create a CV version

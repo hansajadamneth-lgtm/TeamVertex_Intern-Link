@@ -1,3 +1,4 @@
+const { canManageJob } = require("../utils/jobAccess");
 const Application = require("../models/Application");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
@@ -98,7 +99,7 @@ const createApplication = async (req, res, next) => {
     const fitScore = scoreJob({ skills: snapshot.skills }, job).score;
 
     // 5. Create application record
-    const application = await Application.create({
+    const record = {
       student: req.user._id,
       job: job._id,
       company: job.company,
@@ -111,10 +112,20 @@ const createApplication = async (req, res, next) => {
       resumeUrl: (resumeUrl || "").trim(),
       coverLetter: (coverLetter || notes || "").trim(),
       action: "Download Copy",
+    };
+    const application = await mongoose.connection.transaction(async session => {
+      const openJob = await Job.updateOne(
+        { _id: job._id, status: "Active", company: job.company,
+          $or: [{ deadline: null }, { deadline: { $gte: new Date() } }] },
+        { $inc: { applicationsCount: 1 } }, { session }
+      );
+      if (!openJob.matchedCount) return null;
+      const [submitted] = await Application.create([record], { session });
+      return submitted;
     });
-
-    // 6. Safely increment job applicationsCount atomically
-    await Job.findByIdAndUpdate(job._id, { $inc: { applicationsCount: 1 } });
+    if (!application) {
+      return res.status(409).json({ success: false, message: "This internship is no longer accepting applications." });
+    }
 
     return res.status(201).json({
       success: true,
@@ -175,14 +186,10 @@ const getApplicationsForJob = async (req, res, next) => {
     }
 
     // Ownership check: must be job author or platform admin
-    const isOwner =
-      job.postedBy && job.postedBy.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
+    if (!(await canManageJob(job, req.user, { applicants: true }))) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized. You can only view applications for posts you created.",
+        message: "Not authorized. You can only view applications for posts managed by your company.",
       });
     }
 
@@ -238,11 +245,7 @@ const updateApplicationStatus = async (req, res, next) => {
 
     // Ownership check: Job creator or admin
     const job = application.job;
-    const isOwner =
-      job && job.postedBy && job.postedBy.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
+    if (!(await canManageJob(job, req.user, { applicants: true }))) {
       return res.status(403).json({
         success: false,
         message: "Not authorized. You can only update applications for internship posts you manage.",

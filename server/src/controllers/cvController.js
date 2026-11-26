@@ -17,50 +17,90 @@ function clean(body){
  }
  return data;
 }
-async function sync(student,cv){
- await User.findByIdAndUpdate(student,{
-   skills:cv?.skills||[],bio:cv?.summary||"",
-   education:(cv?.education||[]).map(x=>[x.title,x.organization].filter(Boolean).join(" - ")).join("; ").slice(0,1500),
- });
+async function sync(student, cv, session) {
+  await User.updateOne({ _id: student }, { $set: {
+    skills: cv?.skills || [],
+    bio: cv?.summary || "",
+    education: (cv?.education || []).map(item =>
+      [item.title, item.organization].filter(Boolean).join(" - ")).join("; ").slice(0, 1500),
+  } }, { session });
 }
-async function list(req,res,next){try{
- const data=await Cv.find({student:req.user._id}).sort({isPrimary:-1,updatedAt:-1});
- res.json({success:true,data});
-}catch(e){next(e)}}
-async function create(req,res,next){try{
- const body=req.body||{},data=clean(body);
- if(!data.name)return res.status(400).json({success:false,message:"CV version name required."});
- if(await Cv.countDocuments({student:req.user._id})>=10)return res.status(400).json({success:false,message:"Maximum 10 CV versions."});
- const primary=body.isPrimary===true||!(await Cv.exists({student:req.user._id,isPrimary:true}));
- if(primary)await Cv.updateMany({student:req.user._id},{$set:{isPrimary:false}});
- const cv=await Cv.create({...data,student:req.user._id,isPrimary:primary});
- if(primary)await sync(req.user._id,cv);
- res.status(201).json({success:true,data:cv});
-}catch(e){next(e)}}
-async function update(req,res,next){try{
- if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({success:false,message:"Invalid CV ID."});
- const cv=await Cv.findOne({_id:req.params.id,student:req.user._id});
- if(!cv)return res.status(404).json({success:false,message:"CV not found."});
- const data=clean(req.body||{});
- if(data.name==="")return res.status(400).json({success:false,message:"CV version name required."});
- Object.assign(cv,data);
- if(req.body?.isPrimary===true){
-   await Cv.updateMany({student:req.user._id,_id:{$ne:cv._id}},{$set:{isPrimary:false}});
-   cv.isPrimary=true;
- }
- await cv.save();
- if(cv.isPrimary)await sync(req.user._id,cv);
- res.json({success:true,data:cv});
-}catch(e){next(e)}}
-async function remove(req,res,next){try{
- if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({success:false,message:"Invalid CV ID."});
- const cv=await Cv.findOneAndDelete({_id:req.params.id,student:req.user._id});
- if(!cv)return res.status(404).json({success:false,message:"CV not found."});
- if(cv.isPrimary){
-   const other=await Cv.findOne({student:req.user._id}).sort({updatedAt:-1});
-   if(other){other.isPrimary=true;await other.save();}
-   await sync(req.user._id,other);
- }
- res.json({success:true,message:"CV deleted."});
-}catch(e){next(e)}}
-module.exports={list,create,update,remove};
+
+// Serialize writes for one student before reading the version count or primary CV.
+// A concurrent transaction on the same student is retried with a fresh snapshot.
+function editVersions(student, mutate) {
+  return mongoose.connection.transaction(async session => {
+    const result = await User.updateOne({ _id: student }, { $inc: { __v: 1 } }, { session });
+    if (!result.matchedCount) throw Object.assign(new Error("Student account not found."), { status: 404 });
+    return mutate(session);
+  });
+}
+
+async function list(req, res, next) {
+  try {
+    const data = await Cv.find({ student: req.user._id }).sort({ isPrimary: -1, updatedAt: -1 });
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
+}
+
+async function create(req, res, next) {
+  try {
+    const student = req.user._id;
+    const body = req.body || {};
+    const data = clean(body);
+    if (!data.name) return res.status(400).json({ success: false, message: "CV version name required." });
+    const cv = await editVersions(student, async session => {
+      if (await Cv.countDocuments({ student }).session(session) >= 10) {
+        throw Object.assign(new Error("Maximum 10 CV versions."), { status: 400 });
+      }
+      const isPrimary = body.isPrimary === true || !(await Cv.exists({ student, isPrimary: true }).session(session));
+      if (isPrimary) await Cv.updateMany({ student, isPrimary: true }, { $set: { isPrimary: false } }, { session });
+      const [created] = await Cv.create([{ ...data, student, isPrimary }], { session });
+      if (isPrimary) await sync(student, created, session);
+      return created;
+    });
+    res.status(201).json({ success: true, data: cv });
+  } catch (error) { next(error); }
+}
+
+async function update(req, res, next) {
+  try {
+    const student = req.user._id;
+    const id = req.params.id;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ success: false, message: "Invalid CV ID." });
+    const data = clean(req.body || {});
+    if (data.name === "") return res.status(400).json({ success: false, message: "CV version name required." });
+    const cv = await editVersions(student, async session => {
+      const current = await Cv.findOne({ _id: id, student }, null, { session });
+      if (!current) throw Object.assign(new Error("CV not found."), { status: 404 });
+      Object.assign(current, data);
+      if (req.body?.isPrimary === true) {
+        await Cv.updateMany({ student, _id: { $ne: id }, isPrimary: true }, { $set: { isPrimary: false } }, { session });
+        current.isPrimary = true;
+      }
+      await current.save({ session });
+      if (current.isPrimary) await sync(student, current, session);
+      return current;
+    });
+    res.json({ success: true, data: cv });
+  } catch (error) { next(error); }
+}
+
+async function remove(req, res, next) {
+  try {
+    const student = req.user._id;
+    const id = req.params.id;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ success: false, message: "Invalid CV ID." });
+    await editVersions(student, async session => {
+      const cv = await Cv.findOneAndDelete({ _id: id, student }, { session });
+      if (!cv) throw Object.assign(new Error("CV not found."), { status: 404 });
+      if (cv.isPrimary) {
+        const other = await Cv.findOneAndUpdate({ student }, { $set: { isPrimary: true } },
+          { session, sort: { updatedAt: -1, _id: 1 }, new: true });
+        await sync(student, other, session);
+      }
+    });
+    res.json({ success: true, message: "CV deleted." });
+  } catch (error) { next(error); }
+}
+module.exports = { list, create, update, remove };

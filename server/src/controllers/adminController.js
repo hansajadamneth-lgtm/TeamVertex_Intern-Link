@@ -150,16 +150,17 @@ const updateStudentStatus = async (req, res, next) => {
       });
     }
 
-    const student = await User.findOne({ _id: req.params.id, role: "student" });
+    const change = { $set: { status } };
+    if (status !== "Active") change.$inc = { sessionVersion: 1 };
+    const student = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "student" }, change, { new: true }
+    );
     if (!student) {
       return res.status(404).json({
         success: false,
         message: `Student account not found with identifier: ${req.params.id}`,
       });
     }
-
-    student.status = status;
-    await student.save();
 
     return res.status(200).json({
       success: true,

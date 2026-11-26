@@ -232,9 +232,9 @@ const updateMe = async (req, res, next) => {
       (fullName !== undefined && (!boundedText(fullName, 100) || fullName.trim().length < 2)) ||
       (phone !== undefined && !boundedText(phone, 40)) ||
       (location !== undefined && !boundedText(location, 120)) ||
-      (education !== undefined && !boundedText(education, 200)) ||
-      (bio !== undefined && !boundedText(bio, 1200)) ||
-      (skills !== undefined && (!Array.isArray(skills) || skills.length > 30 ||
+      (education !== undefined && !boundedText(education, 1500)) ||
+      (bio !== undefined && !boundedText(bio, 3000)) ||
+      (skills !== undefined && (!Array.isArray(skills) || skills.length > 60 ||
         !skills.every((skill) => typeof skill === "string" && skill.trim().length > 0 && skill.trim().length <= 60)))
     ) {
       return res.status(400).json({ success: false, message: "Invalid profile details or field length." });
